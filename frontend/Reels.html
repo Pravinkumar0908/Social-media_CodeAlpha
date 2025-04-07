@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Reels Clone</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #000;
+            color: #fff;
+            overflow: hidden;
+        }
+        
+        .app-container {
+            max-width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+        }
+        
+        .reels-container {
+            width: 100%;
+            height: calc(100vh - 100px); /* Adjusted for header and footer */
+            margin-top: 50px; /* Space for header */
+            margin-bottom: 50px; /* Space for footer */
+            position: relative;
+            overflow: hidden;
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+        }
+        
+        .reel-item {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 100px);
+            scroll-snap-align: start;
+            background-color: #000;
+        }
+        
+        .reel-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .reel-controls {
+            position: absolute;
+            right: 15px;
+            bottom: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .control-btn {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .likes-count {
+            font-size: 12px;
+            text-align: center;
+        }
+        
+        .reel-info {
+            position: absolute;
+            bottom: 20px;
+            left: 15px;
+            max-width: 80%;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #555;
+            margin-right: 10px;
+            overflow: hidden;
+        }
+        
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .username {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .description {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #333;
+            border-top: 5px solid #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .liked {
+            color: #ff3040;
+        }
+        
+        .sound-control {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 101;
+            color: #fff;
+            font-size: 24px;
+        }
+        
+        .filter-applied {
+            position: absolute;
+            bottom: 80px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .timestamp {
+            font-size: 12px;
+            color: #ccc;
+            margin-top: 5px;
+        }
+
+        /* Mobile Nav/Footer Styles */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .mobile-nav-menu {
+            display: flex;
+            justify-content: space-around;
+            list-style: none;
+        }
+
+        .mobile-nav-item {
+            flex: 1;
+        }
+
+        .mobile-nav-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #65676b;
+            padding: 10px 0;
+            font-size: 12px;
+        }
+
+        .mobile-nav-link.active {
+            color: #6c5ce7;
+        }
+
+        .mobile-nav-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        /* Comments Section Styling */
+        .comments-overlay {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 200;
+            transition: all 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .comments-overlay.active {
+            right: 0;
+        }
+
+        .comments-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .comments-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 15px;
+        }
+
+        .comment-item {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #555;
+            margin-right: 10px;
+            overflow: hidden;
+        }
+
+        .comment-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .comment-details {
+            flex: 1;
+        }
+
+        .comment-user {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .comment-text {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .comment-time {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .comment-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+
+        .comment-like {
+            color: #999;
+            margin-right: 15px;
+        }
+
+        .comment-reply {
+            color: #999;
+        }
+
+        .comment-input-container {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .comment-avatar-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #555;
+            margin-right: 10px;
+            overflow: hidden;
+        }
+
+        .comment-avatar-small img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .comment-input {
+            flex: 1;
+            background-color: #333;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .comment-input:focus {
+            outline: none;
+        }
+
+        .comment-submit {
+            color: #0095f6;
+            font-weight: bold;
+            background: none;
+            border: none;
+            padding: 0 10px;
+            cursor: pointer;
+        }
+
+        /* Share Options Overlay */
+        .share-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 300;
+            display: none;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .share-container {
+            width: 100%;
+            background-color: #252525;
+            border-radius: 15px 15px 0 0;
+            padding: 20px;
+            animation: slideUp 0.3s forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .share-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .share-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .share-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .share-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 24px;
+        }
+
+        .share-name {
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .share-link-container {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .share-link {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #999;
+        }
+
+        .share-copy {
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        .share-close {
+            display: block;
+            width: 100%;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        /* Download button */
+        .download-btn {
+            position: relative;
+        }
+
+        .download-tooltip {
+            position: absolute;
+            right: 50px;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            display: none;
+        }
+
+        .download-btn:hover .download-tooltip {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-nav {
+                display: block;
+            }
+
+            .reels-container {
+                height: calc(100vh - 100px); /* Adjusted for header and footer on mobile */
+            }
+
+            .reel-item {
+                height: calc(100vh - 100px);
+            }
+
+            .comments-overlay {
+                width: 100%;
+            }
+
+            .share-options {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <div class="app-container">
+        <div class="header">
+            <h1>Reels</h1>
+            <i class="fas fa-camera control-btn"></i>
+        </div>
+        
+        <div class="reels-container" id="reelsContainer">
+            <!-- Reels will be loaded here dynamically -->
+        </div>
+
+        <!-- Mobile Navigation as Footer -->
+        <nav class="mobile-nav">
+            <ul class="mobile-nav-menu">
+                <li class="mobile-nav-item">
+                    <a href="home.html" class="mobile-nav-link">
+                        <span class="mobile-nav-icon"><i class="fas fa-home"></i></span>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li class="mobile-nav-item">
+                    <a href="search.html" class="mobile-nav-link">
+                        <span class="mobile-nav-icon"><i class="fas fa-search"></i></span>
+                        <span>Search</span>
+                    </a>
+                </li>
+                <li class="mobile-nav-item">
+                    <a href="createpost.html" class="mobile-nav-link">
+                        <span class="mobile-nav-icon"><i class="fas fa-upload"></i></span>
+                        <span>Upload</span>
+                    </a>
+                </li>
+                <li class="mobile-nav-item">
+                    <a href="Reels.html" class="mobile-nav-link active">
+                        <span class="mobile-nav-icon"><i class="fas fa-video"></i></span>
+                        <span>Reels</span>
+                    </a>
+                </li>
+                <li class="mobile-nav-item">
+                    <a href="profile.html" class="mobile-nav-link">
+                        <span class="mobile-nav-icon"><i class="fas fa-user"></i></span>
+                        <span>Profile</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Comments Overlay (slides from right to left) -->
+        <div class="comments-overlay" id="commentsOverlay">
+            <div class="comments-header">
+                <h3>Comments</h3>
+                <button class="close-comments-btn control-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="comments-content" id="commentsContent">
+                <!-- Comments will be loaded dynamically -->
+            </div>
+            <div class="comment-input-container">
+                <div class="comment-avatar-small">
+                    <img src="/api/placeholder/40/40" alt="Your Profile">
+                </div>
+                <input type="text" class="comment-input" placeholder="Add a comment...">
+                <button class="comment-submit">Post</button>
+            </div>
+        </div>
+        
+        <!-- Share Options Overlay (slides up from bottom) -->
+        <div class="share-overlay" id="shareOverlay">
+            <div class="share-container">
+                <div class="share-title">Share to</div>
+                <div class="share-options">
+                    <div class="share-option">
+                        <div class="share-icon" style="color: #25D366;">
+                            <i class="fab fa-whatsapp"></i>
+                        </div>
+                        <div class="share-name">WhatsApp</div>
+                    </div>
+                    <div class="share-option">
+                        <div class="share-icon" style="color: #0088cc;">
+                            <i class="fab fa-telegram"></i>
+                        </div>
+                        <div class="share-name">Telegram</div>
+                    </div>
+                    <div class="share-option">
+                        <div class="share-icon" style="color: #1DA1F2;">
+                            <i class="fab fa-twitter"></i>
+                        </div>
+                        <div class="share-name">Twitter</div>
+                    </div>
+                    <div class="share-option">
+                        <div class="share-icon" style="color: #3b5998;">
+                            <i class="fab fa-facebook"></i>
+                        </div>
+                        <div class="share-name">Facebook</div>
+                    </div>
+                    <div class="share-option">
+                        <div class="share-icon" style="color: #c32aa3;">
+                            <i class="fas fa-comment"></i>
+                        </div>
+                        <div class="share-name">Messages</div>
+                    </div>
+                    <div class="share-option">
+                        <div class="share-icon" style="color: #0a66c2;">
+                            <i class="fab fa-linkedin"></i>
+                        </div>
+                        <div class="share-name">LinkedIn</div>
+                    </div>
+                    <div class="share-option">
+                        <div class="share-icon" style="color: #25D366;">
+                            <i class="fas fa-paper-plane"></i>
+                        </div>
+                        <div class="share-name">Direct</div>
+                    </div>
+                    <div class="share-option">
+                        <div class="share-icon" style="color: #fff;">
+                            <i class="fas fa-link"></i>
+                        </div>
+                        <div class="share-name">Link</div>
+                    </div>
+                </div>
+                
+                <div class="share-link-container">
+                    <div class="share-link">https://instagram.com/p/abcdef123456</div>
+                    <button class="share-copy">Copy</button>
+                </div>
+                
+                <button class="share-close">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDoiLcUQPewNzua9_1MRSnvp3pA4HmhmTk",
+            authDomain: "social-media-98249.firebaseapp.com",
+            projectId: "social-media-98249",
+            storageBucket: "social-media-98249.firebasestorage.app",
+            messagingSenderId: "168889776318",
+            appId: "1:168889776318:web:01f1c481b86c3085cb06ef",
+            measurementId: "G-6067G6C46Q"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        let currentUser = null;
+        let currentReelId = null;
+
+        // Helper functions for time formatting
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return '';
+            
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000); // difference in seconds
+            
+            if (diff < 60) {
+                return `${diff} seconds ago`;
+            } else if (diff < 3600) {
+                return `${Math.floor(diff / 60)} minutes ago`;
+            } else if (diff < 86400) {
+                return `${Math.floor(diff / 3600)} hours ago`;
+            } else if (diff < 604800) {
+                return `${Math.floor(diff / 86400)} days ago`;
+            } else {
+                return date.toLocaleDateString();
+            }
+        }
+
+        // Function to fetch user data from Firestore
+        async function fetchUserData(userId) {
+            try {
+                const userDoc = await db.collection('users').doc(userId).get();
+                if (userDoc.exists) {
+                    return userDoc.data();
+                }
+                return null;
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+                return null;
+            }
+        }
+
+        // Function to fetch reels from Firestore and integrate user data
+        async function fetchReels() {
+            try {
+                const reelsSnapshot = await db.collection('posts')
+                    .where('postType', '==', 'reels')
+                    .limit(10)
+                    .get();
+                
+                const reelsContainer = document.getElementById('reelsContainer');
+                reelsContainer.innerHTML = '';
+                
+                // Convert snapshot to array and sort client-side
+                let reelsArray = [];
+                for (const doc of reelsSnapshot.docs) {
+                    const reelData = doc.data();
+                    const userData = await fetchUserData(reelData.userId);
+                    
+                    reelsArray.push({
+                        id: doc.id,
+                        data: {
+                            ...reelData,
+                            name: userData?.name || reelData.userId,
+                            profilePic: userData?.profilePic || '/api/placeholder/40/40',
+                            bio: userData?.caption || ''
+                        }
+                    });
+                }
+                
+                // Sort by createdAt descending
+                reelsArray.sort((a, b) => {
+                    const dateA = a.data.createdAt.toDate ? a.data.createdAt.toDate() : new Date(a.data.createdAt);
+                    const dateB = b.data.createdAt.toDate ? b.data.createdAt.toDate() : new Date(b.data.createdAt);
+                    return dateB - dateA;
+                });
+                
+                reelsArray.forEach(reel => {
+                    const reelData = reel.data;
+                    const reelId = reel.id;
+                    
+                    // Create reel element
+                    const reelElement = document.createElement('div');
+                    reelElement.className = 'reel-item';
+                    reelElement.id = `reel-${reelId}`;
+                    
+                    // Check if current user has liked this reel
+                    const isLiked = currentUser ? reelData.likedBy?.includes(currentUser.uid) : false;
+                    
+                    reelElement.innerHTML = `
+                        <video class="reel-video" loop>
+                            <source src="${reelData.mediaUrl}" type="video/mp4">
+                        </video>
+                        <div class="sound-control">
+                            <i class="fas fa-volume-up"></i>
+                        </div>
+                        <div class="reel-controls">
+                            <button class="control-btn like-btn ${isLiked ? 'liked' : ''}" data-reel-id="${reelId}">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                            <div class="likes-count">${reelData.likes || 0}</div>
+                            <button class="control-btn comment-btn" data-reel-id="${reelId}">
+                                <i class="fas fa-comment"></i>
+                            </button>
+                            <button class="control-btn share-btn" data-reel-id="${reelId}">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                            <button class="control-btn download-btn" data-reel-id="${reelId}" data-url="${reelData.mediaUrl}">
+                                <i class="fas fa-download"></i>
+                                <span class="download-tooltip">Download</span>
+                            </button>
+                            <button class="control-btn">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                        </div>
+                        <div class="reel-info">
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    <img src="${reelData.profilePic}" alt="User">
+                                </div>
+                                <div class="username">${reelData.name}</div>
+                            </div>
+                            <div class="description">${reelData.caption || 'Check out this reel!'}</div>
+                            <div class="timestamp">${formatTimestamp(reelData.createdAt)}</div>
+                        </div>
+                    `;
+                    
+                    reelsContainer.appendChild(reelElement);
+                });
+                
+                setupIntersectionObserver();
+                document.querySelector('.loading').style.display = 'none';
+            } catch (error) {
+                console.error("Error fetching reels:", error);
+            }
+        }
+        
+        // Function to handle reel video playback based on visibility
+        function setupIntersectionObserver() {
+            const videos = document.querySelectorAll('.reel-video');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const video = entry.target;
+                        video.play();
+                        video.muted = false; // Enable sound by default
+                    } else {
+                        const video = entry.target;
+                        video.pause();
+                    }
+                });
+            }, { threshold: 0.5 });
+            
+            videos.forEach(video => {
+                observer.observe(video);
+            });
+        }
+        
+        // Function to handle like action
+        async function handleLike(reelId, likeBtn) {
+            if (!currentUser) {
+                alert("Please log in to like this reel");
+                return;
+            }
+            
+            try {
+                const reelRef = db.collection('posts').doc(reelId);
+                const reelDoc = await reelRef.get();
+                
+                if (reelDoc.exists) {
+                    const reelData = reelDoc.data();
+                    const likedBy = reelData.likedBy || [];
+                    const userIndex = likedBy.indexOf(currentUser.uid);
+                    
+                    if (userIndex === -1) {
+                        // User hasn't liked the reel yet, add like
+                        await reelRef.update({
+                            likedBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid),
+                            likes: firebase.firestore.FieldValue.increment(1),
+                            updatedAt: new Date()
+                        });
+                        
+                        likeBtn.classList.add('liked');
+                        const likesCount = likeBtn.nextElementSibling;
+                        likesCount.textContent = parseInt(likesCount.textContent) + 1;
+                    } else {
+                        // User already liked the reel, remove like
+                        await reelRef.update({
+                            likedBy: firebase.firestore.FieldValue.arrayRemove(currentUser.uid),
+                            likes: firebase.firestore.FieldValue.increment(-1),
+                            updatedAt: new Date()
+                        });
+                        
+                        likeBtn.classList.remove('liked');
+                        const likesCount = likeBtn.nextElementSibling;
+                        likesCount.textContent = parseInt(likesCount.textContent) - 1;
+                    }
+                }
+            } catch (error) {
+                console.error("Error handling like:", error);
+            }
+        }
+        
+        // Function to toggle sound
+        function toggleSound(video, soundControl) {
+            video.muted = !video.muted;
+            if (video.muted) {
+                soundControl.innerHTML = '<i class="fas fa-volume-mute"></i>';
+            } else {
+                soundControl.innerHTML = '<i class="fas fa-volume-up"></i>';
+            }
+        }
+        
+        // Function to open comments overlay
+        async function openComments(reelId) {
+            currentReelId = reelId;
+            try {
+                // Fetch comments for this reel
+                await fetchComments(reelId);
+                
+                // Show comments overlay with animation from right to left
+                const commentsOverlay = document.getElementById('commentsOverlay');
+                commentsOverlay.classList.add('active');
+                
+                // Pause video when comments are open
+                const reelVideo = document.querySelector(`#reel-${reelId} .reel-video`);
+                if (reelVideo) {
+                    reelVideo.pause();
+                }
+            } catch (error) {
+                console.error("Error opening comments:", error);
+            }
+        }
+        
+        // Function to close comments overlay
+        function closeComments() {
+            const commentsOverlay = document.getElementById('commentsOverlay');
+            commentsOverlay.classList.remove('active');
+            
+            // Resume video when comments are closed
+            if (currentReelId) {
+                const reelVideo = document.querySelector(`#reel-${currentReelId} .reel-video`);
+                if (reelVideo) {
+                    reelVideo.play();
+                }
+            }
+        }
+        
+       // Function to fetch comments
+       async function fetchComments(reelId) {
+            const commentsContent = document.getElementById('commentsContent');
+            commentsContent.innerHTML = '';
+            
+            try {
+                // Fetch comments from Firestore (if you have a comments collection)
+                // For demo, we'll use mock data
+                const commentsMock = [
+                    {
+                        id: 'comment1',
+                        userId: 'user1',
+                        username: 'john_doe',
+                        profilePic: '/api/placeholder/40/40',
+                        text: 'This is an awesome reel! 🔥',
+                        likes: 45,
+                        timestamp: new Date(Date.now() - 3600000) // 1 hour ago
+                    },
+                    {
+                        id: 'comment2',
+                        userId: 'user2',
+                        username: 'jane_smith',
+                        profilePic: '/api/placeholder/40/40',
+                        text: 'Love the editing style! How did you do that transition?',
+                        likes: 23,
+                        timestamp: new Date(Date.now() - 7200000) // 2 hours ago
+                    },
+                    {
+                        id: 'comment3',
+                        userId: 'user3',
+                        username: 'alex_creative',
+                        profilePic: '/api/placeholder/40/40',
+                        text: 'Great content as always! Keep it up 👏',
+                        likes: 18,
+                        timestamp: new Date(Date.now() - 86400000) // 1 day ago
+                    }
+                ];
+                
+                commentsMock.forEach(comment => {
+                    const commentElement = document.createElement('div');
+                    commentElement.className = 'comment-item';
+                    commentElement.innerHTML = `
+                        <div class="comment-avatar">
+                            <img src="${comment.profilePic}" alt="User">
+                        </div>
+                        <div class="comment-details">
+                            <div class="comment-user">${comment.username}</div>
+                            <div class="comment-text">${comment.text}</div>
+                            <div class="comment-time">${formatTimestamp(comment.timestamp)}</div>
+                            <div class="comment-actions">
+                                <span class="comment-like">Like (${comment.likes})</span>
+                                <span class="comment-reply">Reply</span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    commentsContent.appendChild(commentElement);
+                });
+            } catch (error) {
+                console.error("Error fetching comments:", error);
+            }
+        }
+        
+        // Function to handle comment submission
+        function submitComment() {
+            if (!currentUser) {
+                alert("Please log in to comment");
+                return;
+            }
+            
+            const commentInput = document.querySelector('.comment-input');
+            const commentText = commentInput.value.trim();
+            
+            if (!commentText || !currentReelId) return;
+            
+            try {
+                // For a real app, you would add the comment to Firestore here
+                // For demo, we'll just add it to the DOM
+                const commentsContent = document.getElementById('commentsContent');
+                const commentElement = document.createElement('div');
+                commentElement.className = 'comment-item';
+                commentElement.innerHTML = `
+                    <div class="comment-avatar">
+                        <img src="${currentUser.photoURL || '/api/placeholder/40/40'}" alt="User">
+                    </div>
+                    <div class="comment-details">
+                        <div class="comment-user">${currentUser.displayName || 'Anonymous'}</div>
+                        <div class="comment-text">${commentText}</div>
+                        <div class="comment-time">Just now</div>
+                        <div class="comment-actions">
+                            <span class="comment-like">Like (0)</span>
+                            <span class="comment-reply">Reply</span>
+                        </div>
+                    </div>
+                `;
+                
+                commentsContent.prepend(commentElement);
+                commentInput.value = '';
+            } catch (error) {
+                console.error("Error submitting comment:", error);
+            }
+        }
+        
+        // Function to open share overlay
+        function openShareOverlay() {
+            const shareOverlay = document.getElementById('shareOverlay');
+            shareOverlay.style.display = 'flex';
+        }
+        
+        // Function to close share overlay
+        function closeShareOverlay() {
+            const shareOverlay = document.getElementById('shareOverlay');
+            shareOverlay.style.display = 'none';
+        }
+        
+        // Function to copy link to clipboard
+        function copyLink() {
+            const linkText = document.querySelector('.share-link').textContent;
+            navigator.clipboard.writeText(linkText)
+                .then(() => {
+                    const copyButton = document.querySelector('.share-copy');
+                    copyButton.textContent = 'Copied!';
+                    setTimeout(() => {
+                        copyButton.textContent = 'Copy';
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy text: ', err);
+                });
+        }
+        
+        // Initialize Firebase Auth state listener
+        firebase.auth().onAuthStateChanged(user => {
+            currentUser = user;
+            if (user) {
+                console.log("User is signed in:", user.uid);
+            } else {
+                console.log("No user is signed in");
+            }
+            
+            // Fetch reels after auth state is determined
+            fetchReels();
+        });
+        
+        // Set up event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const reelsContainer = document.getElementById('reelsContainer');
+            
+            // Event delegation for dynamically created elements
+            reelsContainer.addEventListener('click', event => {
+                const target = event.target;
+                
+                // Handle like button clicks
+                if (target.closest('.like-btn')) {
+                    const likeBtn = target.closest('.like-btn');
+                    const reelId = likeBtn.getAttribute('data-reel-id');
+                    handleLike(reelId, likeBtn);
+                } 
+                
+                // Handle comment button clicks
+                else if (target.closest('.comment-btn')) {
+                    const commentBtn = target.closest('.comment-btn');
+                    const reelId = commentBtn.getAttribute('data-reel-id');
+                    openComments(reelId);
+                } 
+                
+                // Handle share button clicks
+                else if (target.closest('.share-btn')) {
+                    openShareOverlay();
+                } 
+                
+                // Handle sound control clicks
+                else if (target.closest('.sound-control')) {
+                    const soundControl = target.closest('.sound-control');
+                    const reelItem = soundControl.closest('.reel-item');
+                    const video = reelItem.querySelector('.reel-video');
+                    toggleSound(video, soundControl);
+                } 
+                
+                // Handle download button clicks
+                else if (target.closest('.download-btn')) {
+                    const downloadBtn = target.closest('.download-btn');
+                    const url = downloadBtn.getAttribute('data-url');
+                    if (url) {
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'reel.mp4';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    }
+                }
+            });
+            
+            // Close comments button
+            document.querySelector('.close-comments-btn').addEventListener('click', closeComments);
+            
+            // Comment submit button
+            document.querySelector('.comment-submit').addEventListener('click', submitComment);
+            
+            // Comment input enter key
+            document.querySelector('.comment-input').addEventListener('keypress', event => {
+                if (event.key === 'Enter') {
+                    submitComment();
+                }
+            });
+            
+            // Share overlay events
+            document.querySelectorAll('.share-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    // In a real app, would handle sharing to specific platform
+                    alert('Sharing feature would be implemented here');
+                    closeShareOverlay();
+                });
+            });
+            
+            document.querySelector('.share-copy').addEventListener('click', copyLink);
+            document.querySelector('.share-close').addEventListener('click', closeShareOverlay);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram-like Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f0f8ff;
+            padding-bottom: 60px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        
+        .main-wrapper {
+            display: flex;
+            flex-direction: row;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 20px;
+            padding-top: 80px;
+            margin-top: 30px;
+        }
+        
+        .container {
+            width: 65%;
+            padding: 20px;
+            order: 1;
+        }
+        
+        header {
+            background-color: white;
+            border-bottom: 1px solid #dbdbdb;
+            padding: 10px 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 935px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4682B4;
+        }
+        
+        .search-bar {
+            flex-grow: 1;
+            max-width: 500px;
+            margin: 0 20px;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 25px;
+            border: none;
+            background-color: #f0f2f5;
+            font-size: 16px;
+            padding-left: 40px;
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #65676b;
+        }
+
+        .create-btn {
+            background-color: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .profile-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-left: 15px;
+        }
+
+        .profile-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .custom-sidebar {
+            width: 30%;
+            background-color: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            order: 2;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
+
+        .user-profile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 15px;
+        }
+
+        .user-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .user-handle {
+            color: #65676b;
+            font-size: 14px;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 10px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-link:hover {
+            background-color: #f5f5fa;
+        }
+
+        .nav-link.active {
+            background-color: #f0f2f5;
+            font-weight: 600;
+            color: #6c5ce7;
+        }
+
+        .nav-icon {
+            margin-right: 12px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .mobile-nav-menu {
+            display: flex;
+            justify-content: space-around;
+            list-style: none;
+        }
+
+        .mobile-nav-item {
+            flex: 1;
+        }
+
+        .mobile-nav-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #65676b;
+            padding: 10px 0;
+            font-size: 12px;
+        }
+
+        .mobile-nav-link.active {
+            color: #6c5ce7;
+        }
+
+        .mobile-nav-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .profile-section {
+            display: flex;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .profile-pic {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 30px;
+            border: 3px solid #4682B4;
+        }
+        
+        .profile-pic img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .profile-info {
+            flex: 1;
+        }
+        
+        .profile-username {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .username {
+            font-size: 28px;
+            font-weight: 300;
+            margin-right: 20px;
+        }
+        
+        .edit-profile {
+            background-color: #4682B4;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .settings-icon {
+            margin-left: 10px;
+            font-size: 20px;
+            color: #4682B4;
+            cursor: pointer;
+        }
+        
+        .profile-stats {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 40px;
+        }
+        
+        .stat {
+            font-size: 16px;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+        }
+        
+        .profile-bio {
+            margin-bottom: 20px;
+        }
+        
+        .bio-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .bio-text {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .content-tabs {
+            display: flex;
+            justify-content: center;
+            border-top: 1px solid #dbdbdb;
+            background-color: white;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .tab {
+            padding: 15px 0;
+            margin: 0 30px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #8e8e8e;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .tab.active {
+            color: #4682B4;
+            border-top: 2px solid #4682B4;
+            margin-top: -2px;
+        }
+
+        .gallery-item {
+            width: calc(33.33% - 20px);
+            max-width: 300px;
+            height: 300px;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .reel-item {
+            width: calc(33.33% - 20px);
+            max-width: 300px;
+            height: 500px;
+            overflow: hidden;
+            position: relative;
+            border-radius: 8px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .gallery-item:hover, .reel-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .content.active {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: flex-start;
+            padding: 10px;
+            background-color: white;
+            border-radius: 0 0 8px 8px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .gallery-item-info {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .gallery-item:hover .gallery-item-info {
+            opacity: 1;
+        }
+        
+        .item-likes, .item-comments {
+            display: flex;
+            align-items: center;
+            margin: 0 10px;
+            font-weight: bold;
+        }
+
+        .reel-video-container {
+            width: 100%;
+            height: 100%;
+            background: #000;
+            position: relative;
+        }
+
+        .reel-video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .reel-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            padding: 10px;
+            color: white;
+        }
+
+        .reel-info .reel-user {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .reel-info .reel-user-pic {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .reel-info .reel-caption {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .reel-info .reel-actions button {
+            background: none;
+            border: none;
+            color: white;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        .content {
+            display: none;
+        }
+        
+        .no-content {
+            width: 100%;
+            text-align: center;
+            padding: 50px;
+            color: #8e8e8e;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 200;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            overflow: auto;
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            width: 50%;
+            max-width: 500px;
+            border-radius: 8px;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #000;
+        }
+        
+        .modal-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 20px;
+            color: #4682B4;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        
+        .btn-save {
+            background-color: #4682B4;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn-save:hover {
+            background-color: #3a6d8f;
+        }
+
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4682B4;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 50px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .main-wrapper {
+                flex-direction: column;
+                padding-top: 60px;
+            }
+            
+            .container {
+                width: 100%;
+                padding: 10px;
+            }
+            
+            .custom-sidebar {
+                display: none; /* Hidden on mobile/tablet */
+            }
+            
+            .profile-section {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .profile-pic {
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+            
+            .profile-username {
+                justify-content: center;
+            }
+            
+            .profile-stats {
+                justify-content: center;
+            }
+            
+            .content-tabs {
+                overflow-x: auto;
+            }
+            
+            .tab {
+                margin: 0 15px;
+            }
+
+            .modal-content {
+                width: 90%;
+                margin: 20% auto;
+            }
+
+            .mobile-nav {
+                display: block;
+            }
+
+            .header-content {
+                flex-wrap: wrap;
+            }
+
+            .search-bar {
+                order: 3;
+                max-width: 100%;
+                margin: 15px 0 0;
+            }
+
+            .gallery-item {
+                width: calc(50% - 15px);
+                max-width: 150px;
+                height: 150px;
+            }
+
+            .reel-item {
+                width: calc(50% - 15px);
+                max-width: 150px;
+                height: 250px;
+            }
+
+            .content.active {
+                gap: 15px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .custom-sidebar {
+                width: 300px; /* Fixed width for desktop */
+            }
+        }
+    </style>
+</head>
+<body>
+    <header id="header-container">
+        <div class="header-content">
+            <div class="logo">Vistagram</div>
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search">
+            </div>
+            <button class="create-btn">Create</button>
+            <div class="profile-icon">
+                <img src="/api/placeholder/40/40" alt="Profile">
+            </div>
+        </div>
+    </header>
+    
+    <div class="main-wrapper">
+        <div class="container">
+            <div class="loader" id="mainLoader"></div>
+            <div class="profile-section">
+                <div class="profile-pic">
+                    <img id="profileImage" src="/api/placeholder/150/150" alt="Profile Picture">
+                </div>
+                
+                <div class="profile-info">
+                    <div class="profile-username">
+                        <h1 class="username" id="displayUsername">Loading...</h1>
+                        <button class="edit-profile" id="editProfileBtn">Edit Profile</button>
+                        <span class="settings-icon"><i class="fa-solid fa-gear"></i></span>
+                    </div>
+                    
+                    <div class="profile-stats">
+                        <div class="stat"><span class="stat-value" id="postsCount">0</span> posts</div>
+                        <div class="stat"><span class="stat-value" id="followersCount">0</span> followers</div>
+                        <div class="stat"><span class="stat-value" id="followingCount">0</span> following</div>
+                    </div>
+                    
+                    <div class="profile-bio">
+                        <div class="bio-name" id="displayName">Loading...</div>
+                        <div class="bio-text" id="userBio">
+                            Loading profile information...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content-tabs">
+                <div class="tab active" data-tab="posts"><i class="fa-solid fa-image"></i> Posts</div>
+                <div class="tab" data-tab="reels"><i class="fa-solid fa-video"></i> Reels</div>
+                <div class="tab" data-tab="saved"><i class="fa-solid fa-bookmark"></i> Saved</div>
+            </div>
+            
+            <div class="content active" id="posts">
+                <div class="loader" id="postsLoader"></div>
+            </div>
+            
+            <div class="content" id="reels">
+                <div class="loader" id="reelsLoader"></div>
+            </div>
+            
+            <div class="content" id="saved">
+                <div class="no-content">
+                    <i class="fa-solid fa-bookmark" style="font-size: 48px; margin-bottom: 20px;"></i>
+                    <h3>Save</h3>
+                    <p>Save photos and videos that you want to see again.</p>
+                </div>
+            </div>
+            
+            <div class="content" id="tagged">
+                <div class="no-content">
+                    <i class="fa-solid fa-user-tag" style="font-size: 48px; margin-bottom: 20px;"></i>
+                    <h3>Photos of you</h3>
+                    <p>When people tag you in photos, they'll appear here.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="custom-sidebar" id="sidebar-container">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <img src="/api/placeholder/70/70" alt="User Profile" id="sidebar-profile-image">
+                </div>
+                <h3 class="user-name" id="sidebar-username">Loading...</h3>
+                <p class="user-handle" id="sidebar-userhandle">@loading</p>
+            </div>
+
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="home.html" class="nav-link active">
+                        <span class="nav-icon"><i class="fas fa-home"></i></span>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon"><i class="fas fa-search"></i></span>
+                        <span>Search</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="createpost.html" class="nav-link">
+                        <span class="nav-icon"><i class="fas fa-upload"></i></span>
+                        <span>Upload</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="Reels.html" class="nav-link">
+                        <span class="nav-icon"><i class="fas fa-heart"></i></span>
+                        <span>Like</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="profile.html" class="nav-link">
+                        <span class="nav-icon"><i class="fas fa-user"></i></span>
+                        <span>Profile</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <div id="footer-container"></div>
+    
+    <div id="editProfileModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeProfileModal">×</span>
+            <h2 class="modal-title">Edit Profile</h2>
+            <form id="profileForm">
+                <div class="form-group">
+                    <label for="nameInput">Name</label>
+                    <input type="text" id="nameInput" placeholder="Your full name">
+                </div>
+                <div class="form-group">
+                    <label for="mobileInput">Mobile</label>
+                    <input type="text" id="mobileInput" placeholder="Your mobile number">
+                </div>
+                <div class="form-group">
+                    <label for="bioInput">Bio</label>
+                    <textarea id="bioInput" placeholder="Tell something about yourself"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="profilePicInput">Profile Picture URL</label>
+                    <input type="text" id="profilePicInput" placeholder="URL to your profile picture">
+                </div>
+                <button type="submit" class="btn-save">Save Changes</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="newPostModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closePostModal">×</span>
+            <h2 class="modal-title">Create New Post</h2>
+            <form id="postForm">
+                <div class="form-group">
+                    <label for="mediaUrlInput">Media URL</label>
+                    <input type="text" id="mediaUrlInput" placeholder="URL to your image or video">
+                </div>
+                <div class="form-group">
+                    <label for="captionInput">Caption</label>
+                    <textarea id="captionInput" placeholder="Write a caption..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="locationInput">Location</label>
+                    <input type="text" id="locationInput" placeholder="Add location">
+                </div>
+                <div class="form-group">
+                    <label for="tagsInput">Tags (comma separated)</label>
+                    <input type="text" id="tagsInput" placeholder="Add tags">
+                </div>
+                <div class="form-group">
+                    <label for="postTypeSelect">Post Type</label>
+                    <select id="postTypeSelect" required>
+                        <option value="post">Regular Post</option>
+                        <option value="reels">Reels</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-save">Share</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        fetch('footer.html')
+            .then(response => response.text())
+            .then(data => document.getElementById('footer-container').innerHTML = data);
+
+        const mainLoader = document.getElementById('mainLoader');
+        const postsLoader = document.getElementById('postsLoader');
+        const reelsLoader = document.getElementById('reelsLoader');
+        const profileImage = document.getElementById('profileImage');
+        const displayUsername = document.getElementById('displayUsername');
+        const displayName = document.getElementById('displayName');
+        const userBio = document.getElementById('userBio');
+        const postsCount = document.getElementById('postsCount');
+        const followersCount = document.getElementById('followersCount');
+        const followingCount = document.getElementById('followingCount');
+        const editProfileBtn = document.getElementById('editProfileBtn');
+        const editProfileModal = document.getElementById('editProfileModal');
+        const closeProfileModal = document.getElementById('closeProfileModal');
+        const profileForm = document.getElementById('profileForm');
+        const nameInput = document.getElementById('nameInput');
+        const mobileInput = document.getElementById('mobileInput');
+        const bioInput = document.getElementById('bioInput');
+        const profilePicInput = document.getElementById('profilePicInput');
+        const newPostModal = document.getElementById('newPostModal');
+        const closePostModal = document.getElementById('closePostModal');
+        const postForm = document.getElementById('postForm');
+        const sidebarProfileImage = document.getElementById('sidebar-profile-image');
+        const sidebarUsername = document.getElementById('sidebar-username');
+        const sidebarUserhandle = document.getElementById('sidebar-userhandle');
+
+        let currentUser = null;
+        let userProfile = null;
+
+        function loadScript(src, callback) {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = callback;
+            document.head.appendChild(script);
+        }
+
+        function showLoader(loader) {
+            if (loader) loader.style.display = 'block';
+        }
+
+        function hideLoader(loader) {
+            if (loader) loader.style.display = 'none';
+        }
+
+        loadScript("https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js", () => {
+            loadScript("https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js", () => {
+                loadScript("https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js", initializeApp);
+            });
+        });
+
+        function initializeApp() {
+            const firebaseConfig = {
+                apiKey: "AIzaSyDoiLcUQPewNzua9_1MRSnvp3pA4HmhmTk",
+                authDomain: "social-media-98249.firebaseapp.com",
+                projectId: "social-media-98249",
+                storageBucket: "social-media-98249.firebasestorage.app",
+                messagingSenderId: "168889776318",
+                appId: "1:168889776318:web:01f1c481b86c3085cb06ef",
+                measurementId: "G-6067G6C46Q"
+            };
+            
+            firebase.initializeApp(firebaseConfig);
+            
+            const db = firebase.firestore();
+            const auth = firebase.auth();
+            
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    currentUser = user;
+                    await fetchUserProfile(db, user.uid);
+                    await fetchUserPosts(db, user.uid);
+                } else {
+                    window.location.href = '/';
+                }
+            });
+            
+            async function fetchUserProfile(db, userId) {
+                showLoader(mainLoader);
+                try {
+                    const userDoc = await db.collection('users').doc(userId).get();
+                    
+                    if (userDoc.exists) {
+                        userProfile = userDoc.data();
+                        displayUsername.textContent = userProfile.username || userProfile.name || 'No Username';
+                        displayName.textContent = userProfile.name || 'No Name';
+                        sidebarUsername.textContent = userProfile.username || userProfile.name || 'No Username';
+                        sidebarUserhandle.textContent = '@' + (userProfile.username || userProfile.name || 'user').toLowerCase().replace(/\s+/g, '');
+                        
+                        let bioText = userProfile.bio || 'No bio yet.';
+                        if (userProfile.mobile) bioText += `<br><i class="fa-solid fa-phone"></i> ${userProfile.mobile}`;
+                        if (userProfile.email) bioText += `<br><i class="fa-solid fa-envelope"></i> ${userProfile.email || currentUser.email}`;
+                        userBio.innerHTML = bioText;
+                        
+                        if (userProfile.profilePic || userProfile.profile) {
+                            profileImage.src = userProfile.profilePic || userProfile.profile;
+                            sidebarProfileImage.src = userProfile.profilePic || userProfile.profile;
+                            document.querySelector('.profile-icon img').src = userProfile.profilePic || userProfile.profile;
+                        }
+                        
+                        const postsArray = userProfile.posts || [];
+                        postsCount.textContent = postsArray.length || 0;
+                        followersCount.textContent = userProfile.followersCount || 0;
+                        followingCount.textContent = userProfile.followingCount || 0;
+                        
+                        nameInput.value = userProfile.name || '';
+                        mobileInput.value = userProfile.mobile || '';
+                        bioInput.value = userProfile.bio || '';
+                        profilePicInput.value = userProfile.profilePic || userProfile.profile || '';
+                    } else {
+                        const defaultProfile = {
+                            name: currentUser.displayName || '',
+                            email: currentUser.email || '',
+                            profilePic: currentUser.photoURL || '',
+                            posts: [],
+                            followersCount: 0,
+                            followingCount: 0,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+                        
+                        await db.collection('users').doc(userId).set(defaultProfile);
+                        userProfile = defaultProfile;
+                        
+                        displayUsername.textContent = defaultProfile.name || 'New User';
+                        displayName.textContent = defaultProfile.name || 'New User';
+                        sidebarUsername.textContent = defaultProfile.name || 'New User';
+                        sidebarUserhandle.textContent = '@' + (defaultProfile.name || 'user').toLowerCase().replace(/\s+/g, '');
+                        userBio.innerHTML = 'No bio yet.';
+                        
+                        if (defaultProfile.profilePic) {
+                            profileImage.src = defaultProfile.profilePic;
+                            sidebarProfileImage.src = defaultProfile.profilePic;
+                            document.querySelector('.profile-icon img').src = defaultProfile.profilePic;
+                        }
+                        
+                        postsCount.textContent = '0';
+                        followersCount.textContent = '0';
+                        followingCount.textContent = '0';
+                        
+                        nameInput.value = defaultProfile.name || '';
+                        bioInput.value = '';
+                        profilePicInput.value = defaultProfile.profilePic || '';
+                    }
+                } catch (error) {
+                    console.error('Error fetching user profile:', error);
+                    alert('Error loading profile. Please reload the page.');
+                } finally {
+                    hideLoader(mainLoader);
+                }
+            }
+            
+            async function fetchUserPosts(db, userId) {
+                showLoader(postsLoader);
+                showLoader(reelsLoader);
+                try {
+                    const postsCollection = await db.collection('posts').get();
+                    const posts = postsCollection.docs
+                        .map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        }))
+                        .filter(post => post.userId === userId)
+                        .sort((a, b) => {
+                            const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : a.createdAt) : 0;
+                            const timeB = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : b.createdAt) : 0;
+                            return timeB - timeA;
+                        });
+
+                    const postsElement = document.getElementById('posts');
+                    const reelsElement = document.getElementById('reels');
+
+                    [postsElement, reelsElement].forEach(element => {
+                        if (element) {
+                            const children = Array.from(element.children);
+                            children.forEach(child => {
+                                if (!child.classList.contains('loader')) {
+                                    element.removeChild(child);
+                                }
+                            });
+                        }
+                    });
+
+                    if (posts.length === 0) {
+                        const noPosts = document.createElement('div');
+                        noPosts.className = 'no-content';
+                        noPosts.innerHTML = `
+                            <i class="fa-solid fa-camera" style="font-size: 48px; margin-bottom: 20px;"></i>
+                            <h3>No Posts Yet</h3>
+                            <p>Start capturing and sharing your moments.</p>
+                        `;
+                        postsElement.appendChild(noPosts);
+
+                        const noReels = document.createElement('div');
+                        noReels.className = 'no-content';
+                        noReels.innerHTML = `
+                            <i class="fa-solid fa-video" style="font-size: 48px; margin-bottom: 20px;"></i>
+                            <h3>No Reels Yet</h3>
+                            <p>Start creating and sharing your video reels.</p>
+                        `;
+                        reelsElement.appendChild(noReels);
+                    } else {
+                        renderPostsGallery(posts, postsElement);
+                        renderReelsGallery(posts, reelsElement);
+                    }
+                } catch (error) {
+                    console.error('Error fetching posts:', error);
+                    alert('Error loading posts. Please try again.');
+                } finally {
+                    hideLoader(postsLoader);
+                    hideLoader(reelsLoader);
+                }
+            }
+
+            function renderPostsGallery(posts, container) {
+                const imagePosts = posts.filter(post => post.mediaType === 'image');
+                
+                if (imagePosts.length === 0) {
+                    const noContent = document.createElement('div');
+                    noContent.className = 'no-content';
+                    noContent.innerHTML = `
+                        <i class="fa-solid fa-image" style="font-size: 48px; margin-bottom: 20px;"></i>
+                        <h3>No Photos Yet</h3>
+                        <p>Start sharing your photos.</p>
+                    `;
+                    container.appendChild(noContent);
+                    return;
+                }
+
+                imagePosts.forEach(post => {
+                    const postElement = document.createElement('div');
+                    postElement.className = 'gallery-item';
+                    postElement.dataset.postId = post.id;
+                    
+                    postElement.innerHTML = `
+                        <img src="${post.mediaUrl}" alt="${post.caption || 'Post'}">
+                        <div class="gallery-item-info">
+                            <span class="item-likes"><i class="fa-solid fa-heart"></i> ${post.likes || 0}</span>
+                            <span class="item-comments"><i class="fa-solid fa-comment"></i> ${post.comments ? post.comments.length : 0}</span>
+                        </div>
+                    `;
+                    
+                    postElement.addEventListener('click', () => openPostDetails(post));
+                    container.appendChild(postElement);
+                });
+            }
+
+            function renderReelsGallery(posts, container) {
+                const videoReels = posts.filter(post => post.mediaType === 'video');
+                
+                if (videoReels.length === 0) {
+                    const noContent = document.createElement('div');
+                    noContent.className = 'no-content';
+                    noContent.innerHTML = `
+                        <i class="fa-solid fa-video" style="font-size: 48px; margin-bottom: 20px;"></i>
+                        <h3>No Reels Yet</h3>
+                        <p>Start creating and sharing your video reels.</p>
+                    `;
+                    container.appendChild(noContent);
+                    return;
+                }
+                
+                videoReels.forEach(reel => {
+                    const reelElement = document.createElement('div');
+                    reelElement.className = 'reel-item';
+                    reelElement.dataset.postId = reel.id;
+                    
+                    reelElement.innerHTML = `
+                        <div class="reel-video-container">
+                            <video src="${reel.mediaUrl}" poster="${reel.mediaUrl}?poster=true" muted preload="metadata"></video>
+                        </div>
+                        <div class="reel-info">
+                            <div class="reel-user">
+                                <img src="${userProfile.profilePic || '/api/placeholder/40/40'}" 
+                                    class="reel-user-pic" alt="Profile">
+                                <span class="reel-username">${userProfile.username || 'User'}</span>
+                            </div>
+                            <div class="reel-caption">${reel.caption || ''}</div>
+                            <div class="reel-actions">
+                                <button class="reel-like-btn"><i class="fa-solid fa-heart"></i> ${reel.likes || 0}</button>
+                                <button class="reel-comment-btn"><i class="fa-solid fa-comment"></i> ${reel.comments ? reel.comments.length : 0}</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    reelElement.addEventListener('click', (e) => {
+                        if (e.target.closest('.reel-actions')) return;
+                        const video = reelElement.querySelector('video');
+                        if (video.paused) {
+                            video.play();
+                        } else {
+                            video.pause();
+                        }
+                    });
+                    
+                    container.appendChild(reelElement);
+                });
+            }
+
+            function openPostDetails(post) {
+                console.log("Opening post details:", post);
+            }
+
+            async function updateUserProfile(profileData) {
+                showLoader(mainLoader);
+                try {
+                    await db.collection('users').doc(currentUser.uid).update({
+                        name: profileData.name,
+                        mobile: profileData.mobile,
+                        bio: profileData.bio,
+                        profilePic: profileData.profile,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    await fetchUserProfile(db, currentUser.uid);
+                    alert('Profile updated successfully!');
+                } catch (error) {
+                    console.error('Error updating profile:', error);
+                    alert('Failed to update profile. Please try again.');
+                } finally {
+                    hideLoader(mainLoader);
+                }
+            }
+
+            async function createPost(postData) {
+                showLoader(postsLoader);
+                try {
+                    const now = firebase.firestore.Timestamp.now();
+                    const newPost = {
+                        userId: currentUser.uid,
+                        username: userProfile.username || userProfile.name || 'User',
+                        userProfilePic: userProfile.profilePic || userProfile.profile || '',
+                        mediaUrl: postData.mediaUrl,
+                        mediaType: determineMediaType(postData.mediaUrl),
+                        postType: postData.postType || 'post',
+                        caption: postData.caption,
+                        location: postData.location,
+                        tags: postData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+                        likes: 0,
+                        likedBy: [],
+                        comments: [],
+                        createdAt: now,
+                        updatedAt: now
+                    };
+                    
+                    const postRef = await db.collection('posts').add(newPost);
+                    
+                    let userPostsArray = userProfile.posts || [];
+                    userPostsArray.push(postRef.id);
+                    
+                    await db.collection('users').doc(currentUser.uid).update({
+                        posts: userPostsArray
+                    });
+                    
+                    await fetchUserProfile(db, currentUser.uid);
+                    await fetchUserPosts(db, currentUser.uid);
+                    
+                    alert('Post created successfully!');
+                } catch (error) {
+                    console.error('Error creating post:', error);
+                    alert('Failed to create post. Please try again.');
+                } finally {
+                    hideLoader(postsLoader);
+                }
+            }
+
+            function determineMediaType(url) {
+                if (!url) return 'image';
+                const videoExtensions = ['.mp4', '.mov', '.avi', '.webm', '.mkv'];
+                const fileExtension = url.substring(url.lastIndexOf('.')).toLowerCase();
+                return videoExtensions.includes(fileExtension) ? 'video' : 'image';
+            }
+
+            function logout() {
+                auth.signOut()
+                    .then(() => {
+                        window.location.href = '/';
+                    })
+                    .catch((error) => {
+                        console.error("Error signing out:", error);
+                        alert("Failed to sign out. Please try again.");
+                    });
+            }
+
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.content');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.getAttribute('data-tab');
+                    tabs.forEach(t => t.classList.remove('active'));
+                    contents.forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(tabName).classList.add('active');
+                });
+            });
+            
+            editProfileBtn.addEventListener('click', () => {
+                editProfileModal.style.display = 'block';
+            });
+            
+            closeProfileModal.addEventListener('click', () => {
+                editProfileModal.style.display = 'none';
+            });
+            
+            profileForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const profileData = {
+                    name: nameInput.value.trim(),
+                    mobile: mobileInput.value.trim(),
+                    bio: bioInput.value.trim(),
+                    profile: profilePicInput.value.trim()
+                };
+                updateUserProfile(profileData);
+                editProfileModal.style.display = 'none';
+            });
+            
+            closePostModal.addEventListener('click', () => {
+                newPostModal.style.display = 'none';
+            });
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const logoutBtn = document.createElement('button');
+                logoutBtn.textContent = 'Logout';
+                logoutBtn.className = 'logout-btn';
+                logoutBtn.style.backgroundColor = '#4682B4';
+                logoutBtn.style.color = 'white';
+                logoutBtn.style.border = 'none';
+                logoutBtn.style.padding = '6px 12px';
+                logoutBtn.style.borderRadius = '4px';
+                logoutBtn.style.fontWeight = 'bold';
+                logoutBtn.style.cursor = 'pointer';
+                logoutBtn.addEventListener('click', logout);
+                
+                setTimeout(() => {
+                    const headerContent = document.querySelector('.header-content');
+                    if (headerContent) {
+                        headerContent.appendChild(logoutBtn);
+                    }
+                }, 1000);
+
+                const createBtn = document.querySelector('.create-btn');
+                if (createBtn) {
+                    createBtn.addEventListener('click', () => {
+                        newPostModal.style.display = 'block';
+                    });
+                }
+            });
+            
+            postForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const mediaUrl = document.getElementById('mediaUrlInput').value.trim();
+                const caption = document.getElementById('captionInput').value.trim();
+                const location = document.getElementById('locationInput').value.trim();
+                const tags = document.getElementById('tagsInput').value.trim();
+                const postType = document.getElementById('postTypeSelect').value;
+                
+                if (!mediaUrl) {
+                    alert('Please enter a media URL');
+                    return;
+                }
+                
+                const postData = {
+                    mediaUrl,
+                    caption,
+                    location,
+                    tags,
+                    postType,
+                    filter: 'Normal'
+                };
+                
+                createPost(postData);
+                newPostModal.style.display = 'none';
+                postForm.reset();
+            });
+            
+            window.addEventListener('click', (event) => {
+                if (event.target === editProfileModal) {
+                    editProfileModal.style.display = 'none';
+                }
+                if (event.target === newPostModal) {
+                    newPostModal.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

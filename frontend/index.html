@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login/Signup System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.2/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.2/firebase-auth-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.2/firebase-firestore-compat.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            display: flex;
+            width: 80%;
+            max-width: 900px;
+            height: 500px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .social-section {
+            width: 40%;
+            background: linear-gradient(to bottom, #3f51b5, #1a237e);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .social-section h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        
+        .social-login {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 15px;
+        }
+        
+        .social-btn {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 30px;
+            background-color: white;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-weight: 500;
+        }
+        
+        .social-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .social-btn img {
+            width: 25px;
+            height: 25px;
+            margin-right: 10px;
+        }
+        
+        .form-section {
+            width: 60%;
+            background-color: white;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .form-container {
+            display: none;
+        }
+        
+        .form-container.active {
+            display: block;
+        }
+        
+        .form-header {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .form-toggle {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: #999;
+            font-weight: 600;
+            position: relative;
+        }
+        
+        .form-toggle.active {
+            color: #3f51b5;
+        }
+        
+        .form-toggle.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20px;
+            right: 20px;
+            height: 3px;
+            background-color: #3f51b5;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #666;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            border-color: #3f51b5;
+            outline: none;
+        }
+        
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .remember-me {
+            display: flex;
+            align-items: center;
+        }
+        
+        .remember-me input {
+            margin-right: 5px;
+        }
+        
+        .forgot-password {
+            color: #3f51b5;
+            text-decoration: none;
+        }
+        
+        .submit-btn {
+            background-color: #3f51b5;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .submit-btn:hover {
+            background-color: #303f9f;
+        }
+        
+        #message {
+            margin-top: 20px;
+            padding: 10px;
+            text-align: center;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        #message.success {
+            background-color: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        
+        #message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+                width: 90%;
+            }
+            .social-section, .form-section {
+                width: 100%;
+            }
+            .social-section {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="social-section">
+            <h2>Welcome Back</h2>
+            <div class="social-login">
+                <button class="social-btn" onclick="signInWithGoogle()">
+                    <img src="https://www.google.com/favicon.ico" alt="Google Logo"> Continue with Google
+                </button>
+                <button class="social-btn" onclick="signInWithFacebook()">
+                    <img src="https://www.facebook.com/favicon.ico" alt="Facebook Logo"> Continue with Facebook
+                </button>
+                <button class="social-btn" onclick="signInWithTwitter()">
+                    <img src="https://www.twitter.com/favicon.ico" alt="Twitter Logo"> Continue with Twitter
+                </button>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <div class="form-header">
+                <button class="form-toggle active" onclick="showLoginForm()">Login</button>
+                <button class="form-toggle" onclick="showSignupForm()">Sign Up</button>
+            </div>
+            
+            <div id="login-form" class="form-container active">
+                <div class="input-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" placeholder="Enter your email">
+                </div>
+                <div class="input-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="Enter your password">
+                </div>
+                <div class="input-group">
+                    <label for="login-role">Login As</label>
+                    <select id="login-role">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="remember-forgot">
+                    <div class="remember-me">
+                        <input type="checkbox" id="remember">
+                        <label for="remember">Remember me</label>
+                    </div>
+                    <a href="#" class="forgot-password">Forgot Password?</a>
+                </div>
+                <button class="submit-btn" onclick="login()">Login</button>
+            </div>
+            
+            <div id="signup-form" class="form-container">
+                <div class="input-group">
+                    <label for="signup-name">Full Name</label>
+                    <input type="text" id="signup-name" placeholder="Enter your full name">
+                </div>
+                <div class="input-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" placeholder="Enter your email">
+                </div>
+                <div class="input-group">
+                    <label for="signup-mobile">Mobile Number</label>
+                    <input type="tel" id="signup-mobile" placeholder="Enter your mobile number">
+                </div>
+                <div class="input-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" placeholder="Create a password">
+                </div>
+                <div class="input-group">
+                    <label for="signup-confirm">Confirm Password</label>
+                    <input type="password" id="signup-confirm" placeholder="Confirm your password">
+                </div>
+                <div class="input-group">
+                    <label for="signup-role">Sign Up As</label>
+                    <select id="signup-role">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <button class="submit-btn" onclick="signup()">Create Account</button>
+            </div>
+            
+            <div id="message"></div>
+        </div>
+    </div>
+
+    <script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDoiLcUQPewNzua9_1MRSnvp3pA4HmhmTk",
+        authDomain: "social-media-98249.firebaseapp.com",
+        projectId: "social-media-98249",
+        storageBucket: "social-media-98249.appspot.com",
+        messagingSenderId: "168889776318",
+        appId: "1:168889776318:web:01f1c481b86c3085cb06ef",
+        measurementId: "G-6067G6C46Q"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    function showLoginForm() {
+        document.getElementById('login-form').classList.add('active');
+        document.getElementById('signup-form').classList.remove('active');
+        document.querySelectorAll('.form-toggle')[0].classList.add('active');
+        document.querySelectorAll('.form-toggle')[1].classList.remove('active');
+    }
+
+    function showSignupForm() {
+        document.getElementById('signup-form').classList.add('active');
+        document.getElementById('login-form').classList.remove('active');
+        document.querySelectorAll('.form-toggle')[1].classList.add('active');
+        document.querySelectorAll('.form-toggle')[0].classList.remove('active');
+    }
+
+    async function signup() {
+        const name = document.getElementById('signup-name').value.trim();
+        const email = document.getElementById('signup-email').value.trim();
+        const mobile = document.getElementById('signup-mobile').value.trim();
+        const password = document.getElementById('signup-password').value;
+        const confirmPassword = document.getElementById('signup-confirm').value;
+        const role = document.getElementById('signup-role').value;
+
+        if (!name || !email || !mobile || !password || !confirmPassword) {
+            showMessage('Please fill all fields', 'error');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            showMessage('Passwords do not match', 'error');
+            return;
+        }
+
+        if (password.length < 6) {
+            showMessage('Password must be at least 6 characters', 'error');
+            return;
+        }
+
+        showMessage('Creating account...', 'success');
+
+        try {
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            const user = userCredential.user;
+
+            await user.updateProfile({ displayName: name });
+
+            const userData = {
+                name: name,
+                email: email,
+                mobile: mobile,
+                role: role, // Store selected role (user or admin)
+                profile: '',
+                followers: 0,
+                following: 0,
+                posts: 0,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            await db.collection('users').doc(user.uid).set(userData);
+
+            const idToken = await user.getIdToken();
+            localStorage.setItem('token', idToken);
+
+            showMessage('Account created successfully!', 'success');
+            document.getElementById('signup-form').reset();
+            setTimeout(() => {
+                window.location.href = role === 'admin' ? '/dashboard.html' : '/home.html';
+            }, 1500);
+
+        } catch (error) {
+            console.error('Signup Error:', error);
+            showMessage(error.message, 'error');
+        }
+    }
+
+    async function login() {
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        const role = document.getElementById('login-role').value;
+        const remember = document.getElementById('remember').checked;
+
+        if (!email || !password) {
+            showMessage('Please enter email and password', 'error');
+            return;
+        }
+
+        showMessage('Logging in...', 'success');
+
+        try {
+            await auth.setPersistence(
+                remember ? 
+                firebase.auth.Auth.Persistence.LOCAL : 
+                firebase.auth.Auth.Persistence.SESSION
+            );
+
+            const userCredential = await auth.signInWithEmailAndPassword(email, password);
+            const user = userCredential.user;
+
+            const userDoc = await db.collection('users').doc(user.uid).get();
+            if (!userDoc.exists) {
+                throw new Error('User data not found');
+            }
+
+            const userData = userDoc.data();
+
+            // Check if selected role matches stored role
+            if (role !== userData.role) {
+                await auth.signOut();
+                showMessage(`Not authorized as ${role}`, 'error');
+                return;
+            }
+
+            await db.collection('users').doc(user.uid).update({
+                lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            const idToken = await user.getIdToken();
+            localStorage.setItem('token', idToken);
+
+            showMessage('Login successful!', 'success');
+            setTimeout(() => {
+                window.location.href = role === 'admin' ? '/dashboard.html' : '/home.html';
+            }, 1500);
+
+        } catch (error) {
+            console.error('Login Error:', error);
+            showMessage(error.message, 'error');
+        }
+    }
+
+    async function authWithProvider(provider) {
+        try {
+            showMessage('Authenticating...', 'success');
+            const result = await auth.signInWithPopup(provider);
+            const user = result.user;
+            const isNewUser = result.additionalUserInfo.isNewUser;
+
+            const userRef = db.collection('users').doc(user.uid);
+            const doc = await userRef.get();
+
+            if (!doc.exists || isNewUser) {
+                const userData = {
+                    name: user.displayName || '',
+                    email: user.email || '',
+                    mobile: user.phoneNumber || '',
+                    role: 'user', // Social login defaults to user role
+                    profile: user.photoURL || '',
+                    followers: 0,
+                    following: 0,
+                    posts: 0,
+                    authProvider: provider.providerId,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                await userRef.set(userData);
+            } else {
+                await userRef.update({
+                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+
+            const idToken = await user.getIdToken();
+            localStorage.setItem('token', idToken);
+
+            const userDoc = await userRef.get();
+            const userRole = userDoc.data().role;
+
+            showMessage('Login successful!', 'success');
+            setTimeout(() => {
+                window.location.href = userRole === 'admin' ? '/dashboard.html' : '/home.html';
+            }, 1500);
+
+        } catch (error) {
+            console.error('Social Login Error:', error);
+            showMessage(error.message, 'error');
+        }
+    }
+
+    function signInWithGoogle() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        authWithProvider(provider);
+    }
+
+    function signInWithFacebook() {
+        const provider = new firebase.auth.FacebookAuthProvider();
+        authWithProvider(provider);
+    }
+
+    function signInWithTwitter() {
+        const provider = new firebase.auth.TwitterAuthProvider();
+        authWithProvider(provider);
+    }
+
+    function showMessage(message, type) {
+        const messageDiv = document.getElementById('message');
+        messageDiv.textContent = message;
+        messageDiv.className = type;
+        messageDiv.style.display = 'block';
+
+        if (type === 'error') {
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+                messageDiv.className = '';
+            }, 5000);
+        }
+    }
+
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            user.getIdToken().then(idToken => {
+                localStorage.setItem('token', idToken);
+                db.collection('users').doc(user.uid).get().then(doc => {
+                    if (doc.exists) {
+                        const role = doc.data().role;
+                        if (window.location.pathname !== (role === 'admin' ? '/dashboard.html' : '/home.html')) {
+                            window.location.href = role === 'admin' ? '/dashboard.html' : '/home.html';
+                        }
+                    }
+                });
+            });
+        }
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mySocial</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-auth-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5fa;
+            padding-bottom: 60px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        header {
+            background-color: white;
+            padding: 15px 0;
+            border-bottom: 1px solid #e5e5e5;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .search-bar {
+            flex-grow: 1;
+            max-width: 500px;
+            margin: 0 20px;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 25px;
+            border: none;
+            background-color: #f0f2f5;
+            font-size: 16px;
+            padding-left: 40px;
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #65676b;
+        }
+
+        .create-btn {
+            background-color: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .profile-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-left: 15px;
+        }
+
+        .profile-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .main-content {
+            display: flex;
+            margin-top: 20px;
+        }
+
+        .sidebar {
+            width: 270px;
+            background-color: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            height: fit-content;
+            position: sticky;
+            top: 90px;
+        }
+
+        .user-profile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 15px;
+        }
+
+        .user-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .user-handle {
+            color: #65676b;
+            font-size: 14px;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 10px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-link:hover {
+            background-color: #f5f5fa;
+        }
+
+        .nav-link.active {
+            background-color: #f0f2f5;
+            font-weight: 600;
+            color: #6c5ce7;
+        }
+
+        .nav-icon {
+            margin-right: 12px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feed-area {
+            flex-grow: 1;
+            margin: 0 20px;
+        }
+
+        .stories-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding: 10px 0;
+            margin-bottom: 20px;
+        }
+
+        .story {
+            min-width: 120px;
+            width: 120px;
+            height: 180px;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .story:hover {
+            transform: scale(1.05);
+        }
+
+        .story img,
+        .story video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .story-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 10px;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+            color: white;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .story-user {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid #6c5ce7;
+            overflow: hidden;
+        }
+
+        .story-user img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .story-viewer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .story-viewer-content {
+            position: relative;
+            max-width: 500px;
+            width: 100%;
+            height: 80vh;
+            max-height: 900px;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .story-viewer-media {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .story-viewer-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            padding: 15px;
+            color: white;
+            text-align: center;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+        }
+
+        .story-viewer-user {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .story-viewer-user img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            margin-right: 10px;
+        }
+
+        .story-viewer-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .story-nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: white;
+            font-size: 30px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .story-nav-left {
+            left: 20px;
+        }
+
+        .story-nav-right {
+            right: 20px;
+        }
+
+        .story-nav-button:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .create-post {
+            background-color: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .post-input {
+            display: flex;
+            align-items: center;
+        }
+
+        .post-input .user-avatar {
+            width: 40px;
+            height: 40px;
+            margin-right: 15px;
+            margin-bottom: 0;
+        }
+
+        .post-input input {
+            flex-grow: 1;
+            border: none;
+            background: none;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .post-input input:focus {
+            outline: none;
+        }
+
+        .post-button {
+            background-color: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: transform 0.2s ease;
+        }
+
+        .post-button:hover {
+            transform: scale(1.05);
+        }
+
+        .post-card {
+            background-color: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            position: relative;
+        }
+
+        .post-header .user-avatar {
+            width: 50px;
+            height: 50px;
+            margin-right: 15px;
+            margin-bottom: 0;
+        }
+
+        .post-info h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .post-info p {
+            color: #65676b;
+            font-size: 14px;
+        }
+
+        .post-options {
+            position: absolute;
+            right: 15px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .follow-btn {
+            position: absolute;
+            right: 50px;
+            background-color: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .follow-btn.unfollow {
+            background-color: #e5e5e5;
+            color: #333;
+        }
+
+        .follow-btn:hover {
+            background-color: #5a4cd1;
+        }
+
+        .follow-btn.unfollow:hover {
+            background-color: #d5d5d5;
+        }
+
+        .post-image {
+            width: 100%;
+        }
+
+        .post-image img,
+        .post-image video {
+            width: 100%;
+            max-height: 500px;
+            object-fit: cover;
+        }
+
+        .post-actions {
+            display: flex;
+            padding: 10px 15px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .action-button {
+            display: flex;
+            align-items: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-right: 20px;
+            font-size: 18px;
+            color: #65676b;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .action-button.liked {
+            color: #e0245e;
+            animation: likeAnimation 0.3s ease;
+        }
+
+        .action-button:hover {
+            transform: scale(1.1);
+        }
+
+        .save-button {
+            margin-left: auto;
+            margin-right: 0;
+        }
+
+        .post-likes {
+            padding: 0 15px 5px;
+            font-size: 14px;
+        }
+
+        .post-likes span {
+            font-weight: 600;
+        }
+
+        .post-caption {
+            padding: 0 15px 15px;
+            font-size: 14px;
+        }
+
+        .comments-section {
+            padding: 0 15px 15px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .comment {
+            display: flex;
+            margin-bottom: 10px;
+            animation: commentAppear 0.3s ease-in;
+        }
+
+        .comment-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 10px;
+        }
+
+        .comment-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .comment-content {
+            flex-grow: 1;
+        }
+
+        .comment-content span {
+            font-weight: 600;
+            margin-right: 5px;
+        }
+
+        .comment-input {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        .comment-input input {
+            flex-grow: 1;
+            border: 1px solid #e5e5e5;
+            border-radius: 20px;
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        .comment-input button {
+            background-color: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .comment-input button:hover {
+            transform: scale(1.05);
+        }
+
+        .view-more-btn {
+            background: none;
+            border: none;
+            color: #6c5ce7;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 5px;
+        }
+
+        .comments-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 2000;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .comments-popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .comments-popup-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        @keyframes likeAnimation {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.3);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes commentAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .messages-column {
+            width: 300px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            height: fit-content;
+            position: sticky;
+            top: 90px;
+        }
+
+        .messages-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .messages-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .messages-header .icon {
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .messages-search {
+            padding: 10px 15px;
+            position: relative;
+        }
+
+        .messages-search input {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: none;
+            background-color: #f0f2f5;
+            font-size: 14px;
+            padding-left: 40px;
+        }
+
+        .messages-search i {
+            position: absolute;
+            left: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #65676b;
+        }
+
+        .messages-tabs {
+            display: flex;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            color: #6c5ce7;
+            border-bottom: 2px solid #6c5ce7;
+        }
+
+        .messages-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .message-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .message-item:hover {
+            background-color: #f5f5fa;
+        }
+
+        .message-item .user-avatar {
+            width: 50px;
+            height: 50px;
+            margin-right: 15px;
+            margin-bottom: 0;
+        }
+
+        .message-content h4 {
+            font-size: 15px;
+            margin-bottom: 5px;
+        }
+
+        .message-content p {
+            font-size: 13px;
+            color: #65676b;
+        }
+
+        .requests-section {
+            padding: 15px;
+        }
+
+        .requests-section h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .request-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .request-item .user-avatar {
+            width: 50px;
+            height: 50px;
+            margin-right: 15px;
+            margin-bottom: 0;
+        }
+
+        .request-info h4 {
+            font-size: 15px;
+            margin-bottom: 5px;
+        }
+
+        .request-info p {
+            font-size: 13px;
+            color: #65676b;
+        }
+
+        .request-actions {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        .accept-btn {
+            background-color: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .decline-btn {
+            background-color: #f0f2f5;
+            color: #333;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .mobile-nav-menu {
+            display: flex;
+            justify-content: space-around;
+            list-style: none;
+        }
+
+        .mobile-nav-item {
+            flex: 1;
+        }
+
+        .mobile-nav-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #65676b;
+            padding: 10px 0;
+            font-size: 12px;
+        }
+
+        .mobile-nav-link.active {
+            color: #6c5ce7;
+        }
+
+        .mobile-nav-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6c5ce7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .no-posts {
+            text-align: center;
+            padding: 30px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        @media (max-width:1200px) {
+            .messages-column {
+                width: 250px;
+            }
+        }
+
+        @media (max-width:992px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                margin-bottom: 20px;
+                position: static;
+            }
+
+            .user-profile {
+                flex-direction: row;
+                align-items: center;
+                justify-content: flex-start;
+            }
+
+            .user-avatar {
+                margin-bottom: 0;
+                margin-right: 15px;
+            }
+
+            .nav-menu {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+
+            .nav-item {
+                width: 48%;
+            }
+
+            .feed-area {
+                margin: 0;
+            }
+
+            .messages-column {
+                width: 100%;
+                margin-top: 20px;
+                position: static;
+            }
+
+            .messages-list {
+                max-height: none;
+            }
+        }
+
+        @media (max-width:768px) {
+            body {
+                padding-bottom: 60px;
+            }
+
+            .header-content {
+                flex-wrap: wrap;
+            }
+
+            .search-bar {
+                order: 3;
+                max-width: 100%;
+                margin: 15px 0 0;
+            }
+
+            .story {
+                min-width: 100px;
+                height: 160px;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .mobile-nav {
+                display: block;
+            }
+
+            .story-viewer-content {
+                height: 100vh;
+                max-width: 100%;
+                border-radius: 0;
+            }
+        }
+
+        @media (max-width:576px) {
+            .story {
+                min-width: 90px;
+                height: 190px;
+            }
+
+            .feed-area .user-avatar {
+                display: none;
+            }
+
+            .request-actions {
+                flex-direction: column;
+            }
+
+            .accept-btn,
+            .decline-btn {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header-container"></div>
+    <div class="story-viewer" id="story-viewer">
+        <div class="story-viewer-content" id="story-viewer-content"><button class="story-nav-button story-nav-left"
+                id="story-nav-left"><i class="fas fa-chevron-left"></i></button><button
+                class="story-nav-button story-nav-right" id="story-nav-right"><i
+                    class="fas fa-chevron-right"></i></button><button class="story-viewer-close"
+                id="story-viewer-close"><i class="fas fa-times"></i></button></div>
+    </div>
+    <div class="container">
+        <div class="main-content">
+            <div id="sidebar-container"></div>
+            <div class="feed-area">
+                <div class="stories-container" id="stories-container"></div>
+                <div class="create-post">
+                    <div class="post-input">
+                        <div class="user-avatar"><img src="/api/placeholder/40/40" alt="Your Profile"
+                                id="create-post-profile-image"></div><input type="text"
+                            placeholder="What's on your mind?" id="post-input-text"><button class="post-button"
+                            id="post-button">Post</button>
+                    </div>
+                </div>
+                <div id="posts-container">
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="messages-column">
+                <div class="messages-header">
+                    <h2>Messages</h2>
+                    <div class="icon"><i class="fas fa-envelope"></i></div>
+                </div>
+                <div class="messages-search"><i class="fas fa-search"></i><input type="text"
+                        placeholder="Search messages"></div>
+                <div class="messages-tabs">
+                    <div class="tab active">Primary</div>
+                    <div class="tab">General</div>
+                    <div class="tab">Requests (7)</div>
+                </div>
+                <div class="messages-list">
+                    <div class="message-item">
+                        <div class="user-avatar"><img src="/api/placeholder/50/50" alt="Edem Quist"></div>
+                        <div class="message-content">
+                            <h4>Edem Quist</h4>
+                            <p>Just woke up bruh</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="requests-section">
+                    <h3>Requests</h3>
+                    <div class="request-item">
+                        <div class="user-avatar"><img src="/api/placeholder/50/50" alt="Hajia Bintu"></div>
+                        <div class="request-info">
+                            <h4>Hajia Bintu</h4>
+                            <p>8 mutual friends</p>
+                            <div class="request-actions"><button class="accept-btn">Accept</button><button
+                                    class="decline-btn">Decline</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="footer-container"></div>
+    <div class="comments-popup" id="comments-popup">
+        <div class="comments-popup-header">
+            <h3>Comments</h3><button class="comments-popup-close" id="comments-popup-close"><i
+                    class="fas fa-times"></i></button>
+        </div>
+        <div id="popup-comments-content"></div>
+    </div>
+
+    <script>
+        fetch('header.html').then(response => response.text()).then(data => document.getElementById('header-container').innerHTML = data);
+        fetch('sidebar.html').then(response => response.text()).then(data => document.getElementById('sidebar-container').innerHTML = data);
+        fetch('footer.html').then(response => response.text()).then(data => document.getElementById('footer-container').innerHTML = data);
+
+        const firebaseConfig = { apiKey: "AIzaSyDoiLcUQPewNzua9_1MRSnvp3pA4HmhmTk", authDomain: "social-media-98249.firebaseapp.com", projectId: "social-media-98249", storageBucket: "social-media-98249.firebasestorage.app", messagingSenderId: "168889776318", appId: "1:168889776318:web:01f1c481b86c3085cb06ef", measurementId: "G-6067G6C46Q" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        let currentUser = null;
+        let currentStoryIndex = 0;
+        let allStories = [];
+
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return '';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHrs = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHrs / 24);
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+            if (diffHrs < 24) return `${diffHrs} hour${diffHrs > 1 ? 's' : ''} ago`;
+            if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+            return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+        }
+
+        function createStoryElement(story, userData, isCurrentUser = false) {
+            const storyDiv = document.createElement('div');
+            storyDiv.className = 'story';
+            const mediaElement = story.mediaType === 'video' ? `<video src="${story.mediaUrl}" muted></video>` : `<img src="${story.mediaUrl}" alt="${userData.name || 'Story'}">`;
+            storyDiv.innerHTML = `${mediaElement}<div class="story-user"><img src="${userData.profilePic || '/api/placeholder/40/40'}" alt="${userData.name || 'Profile'}"></div><div class="story-overlay">${isCurrentUser ? 'Your Story' : userData.name || 'Unknown'}</div>`;
+            storyDiv.addEventListener('click', () => showStoryViewer(story.userId, story));
+            return storyDiv;
+        }
+
+        function addCurrentUserStoryPlaceholder(userData, container) {
+            const placeholderStory = document.createElement('div');
+            placeholderStory.className = 'story';
+            placeholderStory.innerHTML = `<img src="/api/placeholder/120/180" alt="Your Story"><div class="story-user"><img src="${userData.profilePic || '/api/placeholder/40/40'}" alt="Your Profile"></div><div class="story-overlay">Your Story</div>`;
+            container.appendChild(placeholderStory);
+        }
+
+        function getMostRecentStory(stories) {
+            return stories.reduce((latest, current) => {
+                const latestTime = latest.createdAt.toDate ? latest.createdAt.toDate() : new Date(latest.createdAt);
+                const currentTime = current.createdAt.toDate ? current.createdAt.toDate() : new Date(current.createdAt);
+                return currentTime > latestTime ? current : latest;
+            }, stories[0]);
+        }
+
+        function showStoryViewer(userId, clickedStory) {
+            const viewer = document.getElementById('story-viewer');
+            const content = document.getElementById('story-viewer-content');
+            currentStoryIndex = allStories.findIndex(story => story.id === clickedStory.id);
+            function updateStoryDisplay() {
+                const story = allStories[currentStoryIndex];
+                const userData = story.userData;
+                const mediaElement = story.mediaType === 'video' ? `<video class="story-viewer-media" src="${story.mediaUrl}" autoplay controls></video>` : `<img class="story-viewer-media" src="${story.mediaUrl}" alt="${userData.name || 'Story'}">`;
+                content.innerHTML = `${mediaElement}<div class="story-viewer-user"><img src="${userData.profilePic || '/api/placeholder/40/40'}" alt="${userData.name || 'Profile'}"><span>${userData.name || 'Unknown'}</span></div><div class="story-viewer-overlay">${formatTimestamp(story.createdAt)}</div><button class="story-nav-button story-nav-left" id="story-nav-left"><i class="fas fa-chevron-left"></i></button><button class="story-nav-button story-nav-right" id="story-nav-right"><i class="fas fa-chevron-right"></i></button><button class="story-viewer-close" id="story-viewer-close"><i class="fas fa-times"></i></button>`;
+                document.getElementById('story-nav-left').style.display = currentStoryIndex > 0 ? 'flex' : 'none';
+                document.getElementById('story-nav-right').style.display = currentStoryIndex < allStories.length - 1 ? 'flex' : 'none';
+                document.getElementById('story-nav-left').addEventListener('click', () => { if (currentStoryIndex > 0) { currentStoryIndex--; updateStoryDisplay(); } });
+                document.getElementById('story-nav-right').addEventListener('click', () => { if (currentStoryIndex < allStories.length - 1) { currentStoryIndex++; updateStoryDisplay(); } });
+                document.getElementById('story-viewer-close').addEventListener('click', () => { viewer.style.display = 'none'; });
+            }
+            viewer.style.display = 'flex';
+            updateStoryDisplay();
+            viewer.addEventListener('click', (e) => { if (e.target === viewer) viewer.style.display = 'none'; });
+        }
+
+        function loadStories() {
+            const storiesContainer = document.getElementById('stories-container');
+            storiesContainer.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    currentUser = user;
+                    db.collection('users').doc(currentUser.uid).get().then(doc => {
+                        const currentUserData = doc.exists ? doc.data() : { name: 'Unknown', profilePic: '/api/placeholder/40/40' };
+                        storiesContainer.innerHTML = '';
+                        allStories = [];
+                        db.collection('stories').where('userId', '==', currentUser.uid).get().then(currentUserSnapshot => {
+                            const now = new Date();
+                            const currentUserStories = currentUserSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), userData: currentUserData })).filter(story => story.expiresAt.toDate() > now);
+                            if (currentUserStories.length > 0) {
+                                const mostRecentStory = getMostRecentStory(currentUserStories);
+                                const storyElement = createStoryElement(mostRecentStory, currentUserData, true);
+                                storiesContainer.appendChild(storyElement);
+                                allStories = allStories.concat(currentUserStories);
+                            } else {
+                                addCurrentUserStoryPlaceholder(currentUserData, storiesContainer);
+                            }
+                            db.collection('stories').get().then(snapshot => {
+                                const storiesByUser = {};
+                                const now = new Date();
+                                snapshot.forEach(doc => {
+                                    const story = { id: doc.id, ...doc.data() };
+                                    const expiresAt = story.expiresAt.toDate();
+                                    if (expiresAt > now && story.userId !== currentUser.uid) {
+                                        if (!storiesByUser[story.userId]) storiesByUser[story.userId] = [];
+                                        storiesByUser[story.userId].push(story);
+                                    }
+                                });
+                                const otherUserIds = Object.keys(storiesByUser);
+                                if (otherUserIds.length === 0 && currentUserStories.length === 0) {
+                                    storiesContainer.innerHTML = '<div class="no-posts">No stories available</div>';
+                                    return;
+                                }
+                                const userPromises = otherUserIds.map(userId => db.collection('users').doc(userId).get().then(doc => ({ userId, userData: doc.exists ? doc.data() : { name: 'Unknown', profilePic: '/api/placeholder/40/40' } })));
+                                Promise.all(userPromises).then(results => {
+                                    results.forEach(result => {
+                                        const userStories = storiesByUser[result.userId];
+                                        if (userStories && userStories.length > 0) {
+                                            const mostRecentStory = getMostRecentStory(userStories);
+                                            const storyElement = createStoryElement(mostRecentStory, result.userData, false);
+                                            storiesContainer.appendChild(storyElement);
+                                            allStories = allStories.concat(userStories.map(story => ({ ...story, userData: result.userData })));
+                                        }
+                                    });
+                                }).catch(error => {
+                                    console.error("Error fetching other users' data:", error);
+                                    storiesContainer.innerHTML = '<div class="no-posts">Error loading stories</div>';
+                                });
+                            }).catch(error => {
+                                console.error("Error fetching stories:", error);
+                                storiesContainer.innerHTML = '<div class="no-posts">Error loading stories</div>';
+                            });
+                        }).catch(error => {
+                            console.error("Error fetching current user's stories:", error);
+                            addCurrentUserStoryPlaceholder(currentUserData, storiesContainer);
+                        });
+                    }).catch(error => {
+                        console.error("Error fetching current user:", error);
+                        storiesContainer.innerHTML = '<div class="no-posts">Error loading user data</div>';
+                    });
+                } else {
+                    storiesContainer.innerHTML = '<div class="no-posts">Please log in to view stories</div>';
+                    auth.signInAnonymously().catch(error => console.error("Anonymous login failed:", error));
+                }
+            });
+        }
+
+        function createPostCard(post, userData) {
+            const postCard = document.createElement('div');
+            postCard.className = 'post-card';
+            const locationText = post.location ? `${post.location}, ` : '';
+            const timeText = formatTimestamp(post.createdAt);
+            const isLiked = post.likedBy && post.likedBy.includes(currentUser?.uid);
+            const isFollowing = currentUser && userData.followers && userData.followers.includes(currentUser.uid);
+            const isOwnPost = currentUser && post.userId === currentUser.uid;
+            let mediaContent = '';
+            if (post.mediaUrl) {
+                if (post.mediaType === 'video' || post.postType === 'video') {
+                    mediaContent = `<div class="post-image"><video src="${post.mediaUrl}" controls width="100%"></video></div>`;
+                } else {
+                    mediaContent = `<div class="post-image"><img src="${post.mediaUrl}" alt="Post Image"></div>`;
+                }
+            }
+            postCard.innerHTML = `<div class="post-header"><div class="user-avatar"><img src="${userData.profilePic || '/api/placeholder/50/50'}" alt="${userData.name || 'User'}"></div><div class="post-info"><h3><a href="viewprofile.html?userId=${post.userId}" class="profile-link">${userData.name || 'Unknown'}</a><img src="${userData.profilePic || '/api/placeholder/20/20'}" alt="Profile Icon" class="profile-icon-small"></h3><p>${locationText}${timeText} • ${userData.followers ? userData.followers.length : 0} followers</p></div>${isOwnPost ? '' : `<button class="follow-btn ${isFollowing ? 'unfollow' : ''}" data-user-id="${post.userId}">${isFollowing ? 'Unfollow' : 'Follow'}</button>`}<div class="post-options"><i class="fas fa-ellipsis-h"></i></div></div>${mediaContent}<div class="post-actions"><button class="action-button like-button ${isLiked ? 'liked' : ''}" data-id="${post.id}"><i class="${isLiked ? 'fas' : 'far'} fa-heart"></i></button><button class="action-button comment-button" data-id="${post.id}"><i class="far fa-comment"></i></button><button class="action-button"><i class="far fa-paper-plane"></i></button><button class="action-button save-button"><i class="far fa-bookmark"></i></button></div><div class="post-likes"><span>${post.likes || 0}</span> likes</div><div class="post-caption"><span>${userData.name || 'Unknown'}</span> ${post.content || post.caption || ''}</div><div class="comments-section" id="comments-${post.id}">${renderComments(post.comments || [], post.id)}<div class="comment-input"><input type="text" placeholder="Add a comment..." data-id="${post.id}"><button class="comment-submit" data-id="${post.id}">Post</button></div></div>`;
+            const likeButton = postCard.querySelector('.like-button');
+            likeButton.addEventListener('click', () => toggleLike(post.id, likeButton, postCard));
+            const commentButton = postCard.querySelector('.comment-button');
+            commentButton.addEventListener('click', () => { postCard.querySelector('.comment-input input').focus(); });
+            const commentSubmit = postCard.querySelector('.comment-submit');
+            commentSubmit.addEventListener('click', () => { const input = postCard.querySelector('.comment-input input'); addComment(post.id, input.value.trim(), postCard); input.value = ''; });
+            const commentInput = postCard.querySelector('.comment-input input');
+            commentInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && commentInput.value.trim()) { addComment(post.id, commentInput.value.trim(), postCard); commentInput.value = ''; } });
+            const followButton = postCard.querySelector('.follow-btn');
+            if (followButton) followButton.addEventListener('click', () => toggleFollow(post.userId, followButton));
+            return postCard;
+        }
+
+        function renderComments(comments, postId) {
+            if (!comments.length) return '';
+            const visibleComments = comments.slice(0, 2);
+            const html = visibleComments.map(comment => `<div class="comment"><div class="comment-avatar"><img src="${comment.userProfilePic || '/api/placeholder/30/30'}" alt="${comment.userName || 'User'}"></div><div class="comment-content"><span>${comment.userName || 'Unknown'}</span> ${comment.text}</div></div>`).join('');
+            return comments.length > 2 ? `${html}<button class="view-more-btn" data-post-id="${postId}">View more (${comments.length - 2})</button>` : html;
+        }
+
+        function showCommentsPopup(postId, comments) {
+            const popup = document.getElementById('comments-popup');
+            const content = document.getElementById('popup-comments-content');
+            content.innerHTML = comments.map(comment => `<div class="comment"><div class="comment-avatar"><img src="${comment.userProfilePic || '/api/placeholder/30/30'}" alt="${comment.userName || 'User'}"></div><div class="comment-content"><span>${comment.userName || 'Unknown'}</span> ${comment.text}</div></div>`).join('');
+            popup.style.display = 'block';
+            document.getElementById('comments-popup-close').addEventListener('click', () => { popup.style.display = 'none'; });
+            popup.addEventListener('click', (e) => { if (e.target === popup) popup.style.display = 'none'; });
+        }
+
+        function toggleLike(postId, button, postCard) {
+            if (!currentUser) return;
+            const postRef = db.collection('posts').doc(postId);
+            db.runTransaction((transaction) => {
+                return transaction.get(postRef).then((postDoc) => {
+                    if (!postDoc.exists) throw "Post does not exist!";
+                    const post = postDoc.data();
+                    const likedBy = post.likedBy || [];
+                    const userId = currentUser.uid;
+                    const likesCount = post.likes || 0;
+                    if (likedBy.includes(userId)) {
+                        transaction.update(postRef, { likedBy: likedBy.filter(id => id !== userId), likes: firebase.firestore.FieldValue.increment(-1) });
+                        button.classList.remove('liked');
+                        button.querySelector('i').classList.replace('fas', 'far');
+                        postCard.querySelector('.post-likes span').textContent = likesCount - 1;
+                    } else {
+                        likedBy.push(userId);
+                        transaction.update(postRef, { likedBy: likedBy, likes: firebase.firestore.FieldValue.increment(1) });
+                        button.classList.add('liked');
+                        button.querySelector('i').classList.replace('far', 'fas');
+                        postCard.querySelector('.post-likes span').textContent = likesCount + 1;
+                    }
+                });
+            }).catch((error) => console.error("Error toggling like: ", error));
+        }
+
+        function toggleFollow(targetUserId, button) {
+            if (!currentUser || currentUser.uid === targetUserId) return;
+            const currentUserRef = db.collection('users').doc(currentUser.uid);
+            const targetUserRef = db.collection('users').doc(targetUserId);
+            db.runTransaction((transaction) => {
+                return Promise.all([transaction.get(currentUserRef), transaction.get(targetUserRef)]).then(([currentUserDoc, targetUserDoc]) => {
+                    if (!currentUserDoc.exists || !targetUserDoc.exists) throw "User does not exist!";
+                    const currentUserData = currentUserDoc.data();
+                    const targetUserData = targetUserDoc.data();
+                    const following = currentUserData.following || [];
+                    const followers = targetUserData.followers || [];
+                    if (following.includes(targetUserId)) {
+                        transaction.update(currentUserRef, { following: following.filter(id => id !== targetUserId), followingCount: firebase.firestore.FieldValue.increment(-1) });
+                        transaction.update(targetUserRef, { followers: followers.filter(id => id !== currentUser.uid), followersCount: firebase.firestore.FieldValue.increment(-1) });
+                        button.textContent = 'Follow';
+                        button.classList.remove('unfollow');
+                    } else {
+                        following.push(targetUserId);
+                        followers.push(currentUser.uid);
+                        transaction.update(currentUserRef, { following: following, followingCount: firebase.firestore.FieldValue.increment(1) });
+                        transaction.update(targetUserRef, { followers: followers, followersCount: firebase.firestore.FieldValue.increment(1) });
+                        button.textContent = 'Unfollow';
+                        button.classList.add('unfollow');
+                    }
+                });
+            }).catch((error) => console.error("Error toggling follow: ", error));
+        }
+
+        function addComment(postId, text, postCard) {
+            if (!currentUser || !text) return;
+            const postRef = db.collection('posts').doc(postId);
+            const comment = {
+                userId: currentUser.uid,
+                userName: currentUser.displayName || 'User',
+                userProfilePic: currentUser.profilePic || 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg?semt=ais_hybrid',
+                text: text,
+                createdAt: new Date().toISOString() // Use client-side timestamp instead
+            };
+            postRef.get().then(doc => {
+                if (doc.exists) {
+                    const postData = doc.data();
+                    const comments = postData.comments || [];
+                    comments.unshift(comment); // Add new comment to the beginning
+                    return postRef.update({ comments: comments });
+                } else {
+                    throw new Error("Post does not exist");
+                }
+            }).then(() => {
+                const commentsSection = postCard.querySelector(`#comments-${postId}`);
+                commentsSection.innerHTML = renderComments([comment, ...(postCard.querySelectorAll('.comment').length > 0 ? Array.from(postCard.querySelectorAll('.comment')).map(c => ({ userProfilePic: c.querySelector('img').src, userName: c.querySelector('span').textContent, text: c.querySelector('.comment-content').textContent.split(' ').slice(1).join(' ') })) : [])], postId) + `<div class="comment-input"><input type="text" placeholder="Add a comment..." data-id="${postId}"><button class="comment-submit" data-id="${postId}">Post</button></div>`;
+                const newCommentSubmit = commentsSection.querySelector('.comment-submit');
+                newCommentSubmit.addEventListener('click', () => { const input = commentsSection.querySelector('.comment-input input'); addComment(postId, input.value.trim(), postCard); input.value = ''; });
+                const newCommentInput = commentsSection.querySelector('.comment-input input');
+                newCommentInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && newCommentInput.value.trim()) { addComment(postId, newCommentInput.value.trim(), postCard); newCommentInput.value = ''; } });
+                const viewMoreBtn = commentsSection.querySelector('.view-more-btn');
+                if (viewMoreBtn) viewMoreBtn.addEventListener('click', () => { showCommentsPopup(postId, [comment, ...(postCard.querySelectorAll('.comment').length > 0 ? Array.from(postCard.querySelectorAll('.comment')).map(c => ({ userProfilePic: c.querySelector('img').src, userName: c.querySelector('span').textContent, text: c.querySelector('.comment-content').textContent.split(' ').slice(1).join(' ') })) : [])]); });
+            }).catch((error) => {
+                console.error("Error adding comment: ", error);
+                alert("Failed to add comment. Please try again.");
+            });
+        }
+
+        function loadPosts() {
+            const postsContainer = document.getElementById('posts-container');
+            postsContainer.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+            db.collection('posts').get().then((querySnapshot) => {
+                postsContainer.innerHTML = '';
+                if (querySnapshot.empty) {
+                    postsContainer.innerHTML = '<div class="no-posts">No posts yet. Be the first to post!</div>';
+                    return;
+                }
+                const userPromises = [];
+                const posts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                posts.forEach((post) => {
+                    userPromises.push(db.collection('users').doc(post.userId).get().then((userDoc) => ({ postId: post.id, userData: userDoc.exists ? userDoc.data() : { name: 'Unknown', profilePic: '/api/placeholder/50/50', followers: [], following: [], followersCount: 0, followingCount: 0 } })));
+                });
+                Promise.all(userPromises).then((results) => {
+                    const userDataMap = {};
+                    results.forEach((result) => userDataMap[result.postId] = result.userData);
+                    posts.sort((a, b) => {
+                        const aTime = a.createdAt ? (a.createdAt.toDate ? a.createdAt.toDate() : new Date(a.createdAt)) : new Date(0);
+                        const bTime = b.createdAt ? (b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt)) : new Date(0);
+                        return bTime - aTime;
+                    });
+                    posts.slice(0, 10).forEach((post) => {
+                        const userData = userDataMap[post.id];
+                        const postCard = createPostCard(post, userData);
+                        postsContainer.appendChild(postCard);
+                        const viewMoreBtn = postCard.querySelector('.view-more-btn');
+                        if (viewMoreBtn) viewMoreBtn.addEventListener('click', () => { showCommentsPopup(post.id, post.comments); });
+                    });
+                });
+            }).catch((error) => {
+                console.error("Error loading posts: ", error);
+                postsContainer.innerHTML = '<div class="no-posts">Error loading posts. Please try again later.</div>';
+            });
+        }
+
+        function createPost(content) {
+            if (!currentUser) return;
+            const newPost = { userId: currentUser.uid, content: content, createdAt: firebase.firestore.FieldValue.serverTimestamp(), likes: 0, likedBy: [], comments: [] };
+            db.collection('posts').add(newPost).then(() => {
+                document.getElementById('post-input-text').value = '';
+                loadPosts();
+            }).catch((error) => {
+                console.error("Error creating post: ", error);
+                alert("Error creating post. Please try again.");
+            });
+        }
+
+        function setupUI() {
+            const postButton = document.getElementById('post-button');
+            const postInput = document.getElementById('post-input-text');
+            postButton.addEventListener('click', () => {
+                const content = postInput.value.trim();
+                if (content) createPost(content);
+            });
+            postInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const content = postInput.value.trim();
+                    if (content) createPost(content);
+                }
+            });
+        }
+
+        function updateUserUI(userData) {
+            const profileImage = userData.profilePic || 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg?semt=ais_hybrid';
+            const userName = userData.name || 'Unknown';
+            const userHandle = `@${(userData.name || 'user').toLowerCase().replace(' ', '')}`;
+            const sidebarUsername = document.getElementById('sidebar-username');
+            const sidebarUserhandle = document.getElementById('sidebar-userhandle');
+            const sidebarProfileImage = document.getElementById('sidebar-profile-image');
+            if (sidebarUsername) sidebarUsername.textContent = userName;
+            if (sidebarUserhandle) sidebarUserhandle.textContent = userHandle;
+            if (sidebarProfileImage) sidebarProfileImage.src = profileImage;
+            document.getElementById('create-post-profile-image').src = profileImage;
+        }
+
+        function initApp() {
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    currentUser = user;
+                    db.collection('users').doc(user.uid).get().then((doc) => {
+                        if (doc.exists) {
+                            const userData = doc.data();
+                            updateUserUI(userData);
+                        } else {
+                            const defaultUserData = { name: user.displayName || 'New User', email: user.email || '', profilePic: 'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg?semt=ais_hybrid', bio: '', createdAt: firebase.firestore.FieldValue.serverTimestamp(), followers: [], following: [], followersCount: 0, followingCount: 0, posts: [], role: 'user' };
+                            db.collection('users').doc(user.uid).set(defaultUserData).then(() => {
+                                console.log("Default user profile created");
+                                updateUserUI(defaultUserData);
+                            }).catch((error) => console.error("Error creating default user profile: ", error));
+                        }
+                        loadStories();
+                        loadPosts();
+                        setupUI();
+                    }).catch((error) => console.error("Error fetching user data: ", error));
+                } else {
+                    currentUser = null;
+                    auth.signInAnonymously().catch((error) => console.error("Error signing in anonymously: ", error));
+                }
+            });
+        }
+
+        initApp();
+
+        const style = document.createElement('style');
+        style.textContent = `.profile-link{text-decoration:none;color:#333;transition:color 0.3s;}.profile-link:hover{color:#6c5ce7;}.profile-icon-small{width:20px;height:20px;border-radius:50%;vertical-align:middle;margin-left:5px;}`;
+        document.head.appendChild(style);
+    </script>
+</body>
+
+</html>

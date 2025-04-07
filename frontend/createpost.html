@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Post - mySocial</title>
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v2.1.6/css/unicons.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.2/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.2/firebase-auth-compat.min.js"></script>
+    <style>
+        /* Your existing CSS remains unchanged */
+        :root {
+            --primary-color: #1877f2;
+            --primary-color-light: #3b89f7;
+            --dark-color: #0a4999;
+            --gray-color: #f0f2f5;
+            --light-color: #fff;
+            --dark-text: #333;
+            --light-text: #f0f2f5;
+            --success-color: #4caf50;
+            --danger-color: #f44336;
+            --border-radius: 2rem;
+            --card-border-radius: 1rem;
+            --btn-padding: 0.6rem 2rem;
+            --search-padding: 0.6rem 1rem;
+            --card-padding: 1rem;
+            --sticky-top-left: 5.4rem;
+            --sticky-top-right: -18rem;
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            outline: 0;
+            box-sizing: border-box;
+            text-decoration: none;
+            list-style: none;
+            border: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--dark-text);
+            background: var(--gray-color);
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+        }
+
+        .profile-photo {
+            width: 2.7rem;
+            aspect-ratio: 1/1;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        img {
+            display: block;
+            width: 100%;
+            object-fit: cover;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: var(--btn-padding);
+            font-weight: 500;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 300ms ease;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .text-bold {
+            font-weight: 500;
+        }
+
+        .text-muted {
+            color: #777;
+        }
+
+        nav {
+            width: 100%;
+            background: var(--light-color);
+            padding: 0.7rem 0;
+            position: fixed;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 1px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        nav .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        nav .logo {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        nav .search-bar {
+            background: var(--gray-color);
+            border-radius: var(--border-radius);
+            padding: var(--search-padding);
+            display: flex;
+            align-items: center;
+            width: 30%;
+        }
+
+        nav .search-bar input[type="search"] {
+            background: transparent;
+            width: 100%;
+            margin-left: 0.7rem;
+            font-size: 0.9rem;
+            color: var(--dark-text);
+        }
+
+        nav .search-bar input[type="search"]::placeholder {
+            color: #777;
+        }
+
+        nav .create {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        main {
+            position: relative;
+            top: 5.4rem;
+        }
+
+        .create-post-container {
+            background: var(--light-color);
+            border-radius: var(--card-border-radius);
+            padding: var(--card-padding);
+            width: 50%;
+            margin: 2rem auto;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .create-post-container h2 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .upload-options {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--gray-color);
+            padding-bottom: 1rem;
+        }
+
+        .upload-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background 0.3s;
+        }
+
+        .upload-option:hover {
+            background: var(--gray-color);
+        }
+
+        .upload-option.active {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .upload-option i {
+            font-size: 1.5rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .preview-area {
+            width: 100%;
+            height: 300px;
+            background: var(--gray-color);
+            border-radius: var(--card-border-radius);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .preview-area img, .preview-area video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .preview-placeholder {
+            text-align: center;
+            color: #777;
+        }
+
+        .preview-placeholder i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color-light);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .select-file-btn {
+            background: var(--primary-color-light);
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 300ms ease;
+            font-size: 0.9rem;
+            display: inline-block;
+        }
+
+        .select-file-btn:hover {
+            background: var(--primary-color);
+        }
+
+        .post-details {
+            margin-top: 1.5rem;
+        }
+
+        .post-details textarea {
+            width: 100%;
+            height: 100px;
+            padding: 0.7rem;
+            border-radius: 0.5rem;
+            background: var(--gray-color);
+            resize: none;
+            margin-bottom: 1rem;
+            font-family: inherit;
+        }
+
+        .post-details input[type="text"] {
+            width: 100%;
+            padding: 0.7rem;
+            border-radius: 0.5rem;
+            background: var(--gray-color);
+            margin-bottom: 1rem;
+            font-family: inherit;
+        }
+
+        .location-input {
+            display: flex;
+            align-items: center;
+            background: var(--gray-color);
+            border-radius: 0.5rem;
+            padding: 0 0.7rem;
+            margin-bottom: 1rem;
+        }
+
+        .location-input i {
+            color: #777;
+            font-size: 1.2rem;
+        }
+
+        .location-input input {
+            background: transparent;
+            padding: 0.7rem;
+            width: 100%;
+        }
+
+        .tag-people {
+            display: flex;
+            align-items: center;
+            background: var(--gray-color);
+            border-radius: 0.5rem;
+            padding: 0.7rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+        }
+
+        .tag-people i {
+            margin-right: 0.7rem;
+            color: #777;
+        }
+
+        .post-options {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--gray-color);
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .option-item i {
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .submit-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-secondary {
+            background: var(--gray-color);
+            color: var(--dark-text);
+        }
+
+        .story-options {
+            display: flex;
+            margin-bottom: 1rem;
+        }
+
+        .story-length {
+            display: flex;
+            align-items: center;
+            margin-right: 1.5rem;
+        }
+
+        .story-length input {
+            margin-right: 0.5rem;
+        }
+
+        @media screen and (max-width: 992px) {
+            .create-post-container {
+                width: 70%;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .create-post-container {
+                width: 90%;
+            }
+            nav .search-bar {
+                width: 50%;
+            }
+        }
+
+        @media screen and (max-width: 576px) {
+            .create-post-container {
+                width: 95%;
+            }
+            .container {
+                width: 90%;
+            }
+            nav .search-bar {
+                display: none;
+            }
+            .post-options {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            .option-item {
+                font-size: 0.8rem;
+            }
+        }
+
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-option {
+            width: 60px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .filter-preview {
+            height: 60px;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin-bottom: 0.3rem;
+            border: 2px solid transparent;
+        }
+
+        .filter-preview.active {
+            border-color: var(--primary-color);
+        }
+
+        .filter-name {
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <h2 class="logo">Vistagram</h2>
+            <div class="search-bar">
+                <i class="uil uil-search"></i>
+                <input type="search" placeholder="Search for creators, inspirations, and projects">
+            </div>
+            <div class="create">
+                <a href="/home.html" class="btn btn-primary">Home</a>
+                <div class="profile-photo">
+                    <a href="/profile.html"><img src="./images/profile-1.jpg" alt=""></a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="create-post-container">
+            <h2>Create New Post</h2>
+            <div class="upload-options">
+                <div class="upload-option active" id="post-option">
+                    <i class="uil uil-image-upload"></i>
+                    <span>Post</span>
+                </div>
+                <div class="upload-option" id="story-option">
+                    <i class="uil uil-history"></i>
+                    <span>Story</span>
+                </div>
+                <div class="upload-option" id="video-option">
+                    <i class="uil uil-video"></i>
+                    <span>Video</span>
+                </div>
+                <div class="upload-option" id="reels-option">
+                    <i class="uil uil-film"></i>
+                    <span>Reels</span>
+                </div>
+                <div class="upload-option" id="live-option">
+                    <i class="uil uil-bolt"></i>
+                    <span>Live</span>
+                </div>
+            </div>
+            
+            <div class="preview-area">
+                <div class="preview-placeholder">
+                    <i class="uil uil-image-upload"></i>
+                    <p>Drag photos and videos here</p>
+                    <label for="file-upload" class="select-file-btn">Select from computer</label>
+                </div>
+                <img id="image-preview" style="display: none;" alt="Preview">
+                <video id="video-preview" style="display: none;" controls></video>
+            </div>
+            
+            <input type="file" id="file-upload" class="file-input" accept="image/*,video/*">
+            
+            <div class="post-details">
+                <textarea placeholder="Write a caption..."></textarea>
+                <div class="location-input">
+                    <i class="uil uil-location-point"></i>
+                    <input type="text" placeholder="Add location">
+                </div>
+                <div class="tag-people">
+                    <i class="uil uil-tag-alt"></i>
+                    <span>Tag people</span>
+                </div>
+                <div id="filter-section" style="display: none;">
+                    <h4>Filters</h4>
+                    <div class="filter-options">
+                        <div class="filter-option">
+                            <div class="filter-preview active">
+                                <img src="./images/filter-normal.jpg" alt="Normal">
+                            </div>
+                            <div class="filter-name">Normal</div>
+                        </div>
+                        <div class="filter-option">
+                            <div class="filter-preview">
+                                <img src="./images/filter-clarendon.jpg" alt="Clarendon">
+                            </div>
+                            <div class="filter-name">Clarendon</div>
+                        </div>
+                        <div class="filter-option">
+                            <div class="filter-preview">
+                                <img src="./images/filter-gingham.jpg" alt="Gingham">
+                            </div>
+                            <div class="filter-name">Gingham</div>
+                        </div>
+                        <div class="filter-option">
+                            <div class="filter-preview">
+                                <img src="./images/filter-moon.jpg" alt="Moon">
+                            </div>
+                            <div class="filter-name">Moon</div>
+                        </div>
+                        <div class="filter-option">
+                            <div class="filter-preview">
+                                <img src="./images/filter-lark.jpg" alt="Lark">
+                            </div>
+                            <div class="filter-name">Lark</div>
+                        </div>
+                        <div class="filter-option">
+                            <div class="filter-preview">
+                                <img src="./images/filter-reyes.jpg" alt="Reyes">
+                            </div>
+                            <div class="filter-name">Reyes</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="story-section" style="display: none;">
+                    <h4>Story Settings</h4>
+                    <div class="story-options">
+                        <div class="story-length">
+                            <input type="radio" id="story-15s" name="story-length" checked>
+                            <label for="story-15s">15s</label>
+                        </div>
+                        <div class="story-length">
+                            <input type="radio" id="story-30s" name="story-length">
+                            <label for="story-30s">30s</label>
+                        </div>
+                        <div class="story-length">
+                            <input type="radio" id="story-60s" name="story-length">
+                            <label for="story-60s">60s</label>
+                        </div>
+                    </div>
+                    <div class="tag-people">
+                        <i class="uil uil-music"></i>
+                        <span>Add music</span>
+                    </div>
+                    <div class="tag-people">
+                        <i class="uil uil-smile"></i>
+                        <span>Add stickers</span>
+                    </div>
+                </div>
+                <div id="reels-section" style="display: none;">
+                    <h4>Reels Settings</h4>
+                    <div class="tag-people">
+                        <i class="uil uil-music"></i>
+                        <span>Add audio</span>
+                    </div>
+                    <div class="tag-people">
+                        <i class="uil uil-clock"></i>
+                        <span>Set duration</span>
+                    </div>
+                    <div class="tag-people">
+                        <i class="uil uil-speed"></i>
+                        <span>Speed</span>
+                    </div>
+                </div>
+                <div class="post-options">
+                    <div class="option-item">
+                        <i class="uil uil-comment-dots"></i>
+                        <span>Turn off commenting</span>
+                    </div>
+                    <div class="option-item">
+                        <i class="uil uil-heart"></i>
+                        <span>Hide like count</span>
+                    </div>
+                    <div class="option-item">
+                        <i class="uil uil-link"></i>
+                        <span>Advanced settings</span>
+                    </div>
+                </div>
+                <div class="submit-buttons">
+                    <button class="btn btn-secondary">Save Draft</button>
+                    <button class="btn btn-primary">Share</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDoiLcUQPewNzua9_1MRSnvp3pA4HmhmTk",
+        authDomain: "social-media-98249.firebaseapp.com",
+        projectId: "social-media-98249",
+        storageBucket: "social-media-98249.appspot.com",
+        messagingSenderId: "168889776318",
+        appId: "1:168889776318:web:01f1c481b86c3085cb06ef",
+        measurementId: "G-6067G6C46Q"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    document.addEventListener('DOMContentLoaded', function() {
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                alert('You must be logged in to create a post.');
+                window.location.href = '/';
+                return;
+            }
+
+            const fileUpload = document.getElementById('file-upload');
+            const imagePreview = document.getElementById('image-preview');
+            const videoPreview = document.getElementById('video-preview');
+            const previewPlaceholder = document.querySelector('.preview-placeholder');
+            const filterSection = document.getElementById('filter-section');
+            const storySection = document.getElementById('story-section');
+            const reelsSection = document.getElementById('reels-section');
+            const captionTextarea = document.querySelector('.post-details textarea');
+            const locationInput = document.querySelector('.location-input input');
+            const shareButton = document.querySelector('.submit-buttons .btn-primary');
+            const saveDraftButton = document.querySelector('.submit-buttons .btn-secondary');
+            
+            let selectedFile = null;
+            let selectedPostType = 'post';
+            let selectedFilter = 'Normal';
+            let selectedStoryDuration = '15s';
+            
+            fileUpload.addEventListener('change', function() {
+                const file = this.files[0];
+                selectedFile = file;
+                if (file) {
+                    const fileType = file.type;
+                    const validImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                    const validVideoTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+                    
+                    if (validImageTypes.includes(fileType)) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            imagePreview.src = e.target.result;
+                            imagePreview.style.display = 'block';
+                            videoPreview.style.display = 'none';
+                            previewPlaceholder.style.display = 'none';
+                            filterSection.style.display = 'block';
+                        }
+                        reader.readAsDataURL(file);
+                    } else if (validVideoTypes.includes(fileType)) {
+                        const url = URL.createObjectURL(file);
+                        videoPreview.src = url;
+                        videoPreview.style.display = 'block';
+                        imagePreview.style.display = 'none';
+                        previewPlaceholder.style.display = 'none';
+                        filterSection.style.display = 'none';
+                    } else {
+                        alert('Unsupported file type. Use: jpg, png, gif, mp4, webm, ogg');
+                        selectedFile = null;
+                    }
+                }
+            });
+            
+            const postOption = document.getElementById('post-option');
+            const storyOption = document.getElementById('story-option');
+            const videoOption = document.getElementById('video-option');
+            const reelsOption = document.getElementById('reels-option');
+            const liveOption = document.getElementById('live-option');
+            
+            postOption.addEventListener('click', function() {
+                setActiveOption(this);
+                selectedPostType = 'post';
+                storySection.style.display = 'none';
+                reelsSection.style.display = 'none';
+            });
+            
+            storyOption.addEventListener('click', function() {
+                setActiveOption(this);
+                selectedPostType = 'story';
+                storySection.style.display = 'block';
+                reelsSection.style.display = 'none';
+            });
+            
+            videoOption.addEventListener('click', function() {
+                setActiveOption(this);
+                selectedPostType = 'video';
+                storySection.style.display = 'none';
+                reelsSection.style.display = 'none';
+            });
+            
+            reelsOption.addEventListener('click', function() {
+                setActiveOption(this);
+                selectedPostType = 'reels';
+                storySection.style.display = 'none';
+                reelsSection.style.display = 'block';
+            });
+            
+            liveOption.addEventListener('click', function() {
+                setActiveOption(this);
+                selectedPostType = 'live';
+                storySection.style.display = 'none';
+                reelsSection.style.display = 'none';
+            });
+            
+            document.querySelectorAll('input[name="story-length"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    selectedStoryDuration = this.id.replace('story-', '');
+                });
+            });
+            
+            function setActiveOption(element) {
+                document.querySelectorAll('.upload-option').forEach(option => {
+                    option.classList.remove('active');
+                });
+                element.classList.add('active');
+            }
+            
+            const filterOptions = document.querySelectorAll('.filter-preview');
+            filterOptions.forEach(filter => {
+                filter.addEventListener('click', function() {
+                    filterOptions.forEach(f => f.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedFilter = this.nextElementSibling.textContent;
+                });
+            });
+            
+            shareButton.addEventListener('click', async function(e) {
+                e.preventDefault();
+                if (!selectedFile) {
+                    alert('Please select a file to upload');
+                    return;
+                }
+                
+                const token = await user.getIdToken();
+                const formData = new FormData();
+                formData.append('media', selectedFile);
+                
+                try {
+                    shareButton.textContent = 'Uploading...';
+                    shareButton.disabled = true;
+                    
+                    const uploadResponse = await fetch('/api/upload', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: formData
+                    });
+                    
+                    if (!uploadResponse.ok) {
+                        const errorData = await uploadResponse.json();
+                        throw new Error(errorData.error || 'Upload failed');
+                    }
+                    
+                    const uploadData = await uploadResponse.json();
+                    console.log('Upload Response:', uploadData);
+                    
+                    if (!uploadData.url || !uploadData.type) {
+                        throw new Error('Invalid upload response: Missing URL or type');
+                    }
+                    
+                    let endpoint = '/api/posts';
+                    let postData = {
+                        caption: captionTextarea.value,
+                        location: locationInput.value,
+                        mediaUrl: uploadData.url,
+                        mediaType: uploadData.type,
+                        filterApplied: selectedFilter,
+                        postType: selectedPostType
+                    };
+                    
+                    if (selectedPostType === 'story') {
+                        endpoint = '/api/stories';
+                        postData = {
+                            mediaUrl: uploadData.url,
+                            mediaType: uploadData.type,
+                            duration: selectedStoryDuration
+                        };
+                    }
+                    
+                    console.log('Sending to', endpoint, ':', postData);
+                    
+                    const postResponse = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(postData)
+                    });
+                    
+                    if (!postResponse.ok) {
+                        const errorData = await postResponse.json();
+                        throw new Error(errorData.error || 'Failed to create post');
+                    }
+                    
+                    const result = await postResponse.json();
+                    alert('Your post was created successfully!');
+                    window.location.href = '/home.html';
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Failed to upload: ' + error.message);
+                } finally {
+                    shareButton.textContent = 'Share';
+                    shareButton.disabled = false;
+                }
+            });
+            
+            saveDraftButton.addEventListener('click', function() {
+                const draft = {
+                    caption: captionTextarea.value,
+                    location: locationInput.value,
+                    postType: selectedPostType,
+                    filter: selectedFilter,
+                    timestamp: new Date().toISOString()
+                };
+                const drafts = JSON.parse(localStorage.getItem('postDrafts') || '[]');
+                drafts.push(draft);
+                localStorage.setItem('postDrafts', JSON.stringify(drafts));
+                alert('Draft saved successfully!');
+            });
+        });
+    });
+    </script>
+</body>
+</html>

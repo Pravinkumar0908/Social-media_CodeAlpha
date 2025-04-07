@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Clone Admin Dashboard</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #fafafa;
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    width: 250px;
+    background: #fff;
+    border-right: 1px solid #dbdbdb;
+    padding: 20px 0;
+    height: 100vh;
+    position: fixed;
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+    z-index: 1000;
+}
+
+.logo {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid #dbdbdb;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo img {
+    max-width: 130px;
+}
+
+.mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.nav-links {
+    list-style: none;
+}
+
+.nav-links li {
+    margin-bottom: 5px;
+}
+
+.nav-links a {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: #262626;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.nav-links a:hover {
+    background-color: #f5f5f5;
+}
+
+.nav-links a.active {
+    font-weight: 600;
+    background-color: #f5f5f5;
+    border-left: 3px solid #0095f6;
+}
+
+.nav-links i {
+    margin-right: 15px;
+    font-size: 20px;
+}
+
+/* Main Content Styles */
+.main-content {
+    flex: 1;
+    margin-left: 250px;
+    padding: 20px;
+    width: calc(100% - 250px);
+    transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.header h1 {
+    font-size: 24px;
+    color: #262626;
+}
+
+.search-box {
+    display: flex;
+    background: #efefef;
+    border-radius: 8px;
+    padding: 8px 15px;
+    align-items: center;
+    width: 300px;
+    max-width: 100%;
+}
+
+.search-box input {
+    border: none;
+    background: transparent;
+    margin-left: 10px;
+    width: 100%;
+    outline: none;
+}
+
+.admin-profile {
+    display: flex;
+    align-items: center;
+}
+
+.admin-profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+/* Tab Styles */
+.tabs {
+    display: flex;
+    border-bottom: 1px solid #dbdbdb;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tab-link {
+    padding: 12px 20px;
+    font-weight: 500;
+    color: #8e8e8e;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.tab-link.active {
+    color: #0095f6;
+    border-bottom: 2px solid #0095f6;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Card Styles */
+.card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.card-title {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-left: 10px;
+}
+
+.btn-primary {
+    background: #0095f6;
+    color: white;
+    border: none;
+}
+
+.btn-primary:hover {
+    background: #007bbf;
+}
+
+.btn-outline {
+    background: transparent;
+    color: #0095f6;
+    border: 1px solid #0095f6;
+}
+
+.btn-outline:hover {
+    background: #f0f8ff;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #8e8e8e;
+}
+
+/* Table Styles */
+.table-container {
+    overflow-x: auto;
+    width: 100%;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #dbdbdb;
+}
+
+th {
+    font-weight: 600;
+    color: #8e8e8e;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 10;
+}
+
+tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+.status {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.status-active {
+    background-color: #e3fff0;
+    color: #00a650;
+}
+
+.status-pending {
+    background-color: #fff8e8;
+    color: #ffb100;
+}
+
+.status-inactive {
+    background-color: #fff0f0;
+    color: #ff2c2c;
+}
+
+/* User List (for Top Influencers) */
+.user-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.user-card {
+    display: flex;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+}
+
+.user-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+.user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-name {
+    font-weight: 600;
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-username {
+    color: #8e8e8e;
+    margin-bottom: 10px;
+}
+
+.user-stats {
+    display: flex;
+    font-size: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.user-stat {
+    margin-right: 15px;
+}
+
+.user-stat span {
+    font-weight: 600;
+}
+
+/* Content Grid */
+.content-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.content-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+    aspect-ratio: 1;
+}
+
+.content-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.content-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.content-item:hover .content-overlay {
+    opacity: 1;
+}
+
+@media (hover: none) {
+    .content-overlay {
+        opacity: 1;
+        background: rgba(0, 0, 0, 0.3);
+    }
+}
+
+.content-stats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.content-stat {
+    display: flex;
+    align-items: center;
+    margin: 5px;
+}
+
+.content-stat i {
+    margin-right: 5px;
+}
+
+/* Settings Form */
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #dbdbdb;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+textarea {
+    height: 100px;
+    resize: vertical;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Responsive Styles */
+@media (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 10px;
+        height: auto;
+        max-height: 60px;
+        overflow: hidden;
+        border-right: none;
+        border-bottom: 1px solid #dbdbdb;
+    }
+    .sidebar.expanded {
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+    .mobile-menu-toggle {
+        display: block;
+    }
+    .main-content {
+        margin-left: 0;
+        padding: 15px;
+        width: 100%;
+    }
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .search-box {
+        width: 100%;
+        margin: 10px 0;
+    }
+    .user-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    .content-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .card {
+        padding: 15px 10px;
+    }
+    th, td {
+        padding: 8px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .sidebar, .header .search-box, .tabs, .btn {
+        display: none;
+    }
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+    body {
+        background-color: white;
+    }
+    .card {
+        box-shadow: none;
+        border: 1px solid #eee;
+    }
+}
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <img src="https://via.placeholder.com/130/40" alt="Logo">
+        </div>
+        <ul class="nav-links">
+            <li><a href="#" class="active" onclick="switchTab('dashboard')"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="#" onclick="switchTab('users')"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="#" onclick="switchTab('content')"><i class="fas fa-image"></i> Content</a></li>
+            <li><a href="#" onclick="switchTab('reports')"><i class="fas fa-chart-bar"></i> Reports</a></li>
+            <li><a href="#" onclick="switchTab('comments')"><i class="fas fa-comment"></i> Comments</a></li>
+            <li><a href="#" onclick="switchTab('settings')"><i class="fas fa-cog"></i> Settings</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h1>Admin Dashboard</h1>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search...">
+            </div>
+            <div class="admin-profile">
+                <img src="https://via.placeholder.com/40" alt="Admin Profile">
+                <span>Admin User</span>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab-link active" onclick="switchTab('dashboard')">Dashboard</div>
+            <div class="tab-link" onclick="switchTab('users')">Users</div>
+            <div class="tab-link" onclick="switchTab('content')">Content</div>
+            <div class="tab-link" onclick="switchTab('reports')">Reports</div>
+            <div class="tab-link" onclick="switchTab('comments')">Comments</div>
+            <div class="tab-link" onclick="switchTab('settings')">Settings</div>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="stats-grid" id="statsGrid"></div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Recent Activities</div>
+                    <div class="card-actions">
+                        <button class="btn btn-outline">Export</button>
+                        <button class="btn btn-primary">View All</button>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Activity</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentActivities"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="users" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Users Management</div>
+                    <div class="card-actions">
+                        <button class="btn btn-outline">Export</button>
+                        <button class="btn btn-primary">Add User</button>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Joined</th>
+                            <th>Posts</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersList"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Content Tab -->
+        <div id="content" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Content Management</div>
+                    <div class="card-actions">
+                        <button class="btn btn-outline">Filter</button>
+                        <button class="btn btn-primary">View Reported</button>
+                    </div>
+                </div>
+                <div class="content-grid" id="contentGrid"></div>
+            </div>
+        </div>
+
+        <!-- Reports, Comments, Settings Tabs (Static for now) -->
+        <div id="reports" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Reports</div>
+                </div>
+                <p>Reports data goes here.</p>
+            </div>
+        </div>
+        <div id="comments" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Comments</div>
+                </div>
+                <p>Comments data goes here.</p>
+            </div>
+        </div>
+        <div id="settings" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Settings</div>
+                </div>
+                <p>Settings form goes here.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDoiLcUQPewNzua9_1MRSnvp3pA4HmhmTk",
+            authDomain: "social-media-98249.firebaseapp.com",
+            projectId: "social-media-98249",
+            storageBucket: "social-media-98249.firebasestorage.app",
+            messagingSenderId: "168889776318",
+            appId: "1:168889776318:web:01f1c481b86c3085cb06ef",
+            measurementId: "G-6067G6C46Q"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Format Date
+        function formatDate(timestamp) {
+            if (!timestamp) return 'N/A';
+            return timestamp.toDate ? timestamp.toDate().toLocaleString() : new Date(timestamp).toLocaleString();
+        }
+
+        // Fetch Stats
+        async function fetchStats() {
+            try {
+                const usersSnapshot = await db.collection('users').get();
+                const postsSnapshot = await db.collection('posts').get();
+                const statsGrid = document.getElementById('statsGrid');
+                statsGrid.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${usersSnapshot.size}</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${postsSnapshot.size}</div>
+                        <div class="stat-label">Total Posts</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${Math.floor(usersSnapshot.size * 0.7)}</div>
+                        <div class="stat-label">Active Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">N/A</div>
+                        <div class="stat-label">Engagement Rate</div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error fetching stats:', error);
+            }
+        }
+
+        // Fetch Recent Activities (Assuming a posts collection)
+        async function fetchRecentActivities() {
+            try {
+                const postsSnapshot = await db.collection('posts')
+                    .orderBy('createdAt', 'desc')
+                    .limit(5)
+                    .get();
+                const recentActivities = document.getElementById('recentActivities');
+                recentActivities.innerHTML = '';
+                postsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>@${data.userId}</td>
+                        <td>Posted new content</td>
+                        <td>${formatDate(data.createdAt)}</td>
+                        <td><span class="status status-active">Active</span></td>
+                    `;
+                    recentActivities.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching activities:', error);
+            }
+        }
+
+        // Fetch Users
+        async function fetchUsers() {
+            try {
+                const usersSnapshot = await db.collection('users').get();
+                const usersList = document.getElementById('usersList');
+                usersList.innerHTML = '';
+                usersSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>@${data.name || doc.id}</td>
+                        <td>${data.email || 'N/A'}</td>
+                        <td>${formatDate(data.createdAt)}</td>
+                        <td>${Array.isArray(data.posts) ? data.posts.length : 0}</td>
+                        <td><span class="status status-active">Active</span></td>
+                        <td>
+                            <button class="btn btn-outline">Edit</button>
+                            <button class="btn btn-outline">Ban</button>
+                        </td>
+                    `;
+                    usersList.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            }
+        }
+
+        // Fetch Content (Posts)
+        async function fetchContent() {
+            try {
+                const postsSnapshot = await db.collection('posts')
+                    .orderBy('likes', 'desc')
+                    .limit(8)
+                    .get();
+                const contentGrid = document.getElementById('contentGrid');
+                contentGrid.innerHTML = '';
+                postsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const item = document.createElement('div');
+                    item.className = 'content-item';
+                    item.innerHTML = `
+                        <img src="${data.mediaUrl || 'https://via.placeholder.com/200'}" alt="Post">
+                        <div class="content-overlay">
+                            <div class="content-stats">
+                                <div class="content-stat">
+                                    <i class="fas fa-heart"></i>
+                                    <span>${data.likes || 0}</span>
+                                </div>
+                                <div class="content-stat">
+                                    <i class="fas fa-comment"></i>
+                                    <span>${data.comments ? data.comments.length : 0}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    contentGrid.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Error fetching content:', error);
+            }
+        }
+
+        // Switch Tabs
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active'));
+            document.querySelectorAll(`.tab-link[onclick="switchTab('${tabId}')"]`).forEach(link => link.classList.add('active'));
+            document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
+            document.querySelectorAll(`.nav-links a[onclick="switchTab('${tabId}')"]`).forEach(link => link.classList.add('active'));
+
+            // Fetch data based on tab
+            if (tabId === 'dashboard') {
+                fetchStats();
+                fetchRecentActivities();
+            } else if (tabId === 'users') {
+                fetchUsers();
+            } else if (tabId === 'content') {
+                fetchContent();
+            }
+        }
+
+        // Initial Load
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchStats();
+            fetchRecentActivities();
+        });
+    </script>
+</body>
+</html>
